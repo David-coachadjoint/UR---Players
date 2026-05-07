@@ -203,6 +203,12 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
 .empty-ico{font-size:36px;margin-bottom:10px}
 .empty h3{font-size:18px;color:#e2e8f0;margin-bottom:6px}
 
+/* SUPERPOUVOIRS */
+.sp-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:12px;font-size:9px;font-weight:700;letter-spacing:.5px;background:rgba(246,201,14,.15);color:#f6c90e;border:1px solid rgba(246,201,14,.35);margin:1px 2px 1px 0}
+/* OBRA */
+.obra-card{background:#0e1a2e;border:1px solid #2d4a7a;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.obra-card:hover{border-color:#a78bfa;transform:translateY(-1px)}
+
 /* RESPONSIVE */
 @media(max-width:640px){
   .form-row,.form-row-3{grid-template-columns:1fr}
@@ -276,6 +282,7 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     <button class="nav-tab" onclick="showPage('p-adn',this);renderADN()">🧬 ADN Équipe</button>
     <button class="nav-tab" onclick="showPage('p-compare',this);renderCompare()">⚖️ Comparatif</button>
     <button class="nav-tab" onclick="showPage('p-eval',this);initEval()">📅 Évaluations</button>
+    <button class="nav-tab" onclick="showPage('p-obra',this);renderObra()">🎨 Obra</button>
     <button class="nav-tab" onclick="showPage('p-admin',this);renderAdmin()" id="tab-admin" style="display:none">🛡 Admin</button>
   </div>
 
@@ -348,6 +355,17 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
       <button class="btn btn-p btn-full" onclick="saveEval()">💾 Enregistrer & Synchroniser</button>
     </div>
     <div class="section"><div class="section-title">📜 Historique</div><div id="eval-hist"></div></div>
+  </div>
+
+  <!-- OBRA -->
+  <div class="page" id="p-obra">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:22px;font-weight:900;color:#fff">Obra <span style="color:#a78bfa">Développement</span></div>
+        <div style="font-size:12px;color:#718096;margin-top:3px">Projets de développement individuels · Travaux en cours</div>
+      </div>
+    </div>
+    <div id="obra-content"><div class="empty"><div class="empty-ico">🎨</div><h3>Aucun projet Obra</h3><p>Définissez un projet de développement dans la fiche d'un joueur.</p></div></div>
   </div>
 
   <!-- ADMIN -->
@@ -457,6 +475,11 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
       <div class="fg"><label class="fl">Forces</label><textarea class="fi" id="p-forces" rows="2"></textarea></div>
       <div class="fg"><label class="fl">Axes de progression</label><textarea class="fi" id="p-progres" rows="2"></textarea></div>
       <div class="fg"><label class="fl">Commentaire</label><textarea class="fi" id="p-cmt" rows="2"></textarea></div>
+    </div>
+
+    <div class="section"><div class="section-title">🎨 Obra — Projet de Développement</div>
+      <div class="fg"><label class="fl">Stade</label><select class="fs" id="p-obra-stage"><option value="">—</option><option>En observation</option><option>En développement</option><option>En progression</option><option>Prêt</option><option>Obra maîtrisée</option></select></div>
+      <div class="fg"><label class="fl">Objectif / Plan de développement</label><textarea class="fi" id="p-obra" rows="2" placeholder="Ex: Améliorer la vision du jeu et la prise de décision sous pression…"></textarea></div>
     </div>
 
     <div class="btn-row">
@@ -733,6 +756,11 @@ function barColor(v){return v>=8?'#68d391':v>=6?'#63b3ed':v>=4?'#ed8936':'#fc818
 function barColorADN(v){return v>=7.5?'#68d391':v>=6?'#63b3ed':v>=4.5?'#ed8936':'#fc8181';}
 
 // ═══════════════════════════════════════
+//  SUPERPOUVOIRS
+// ═══════════════════════════════════════
+function getSuperPowers(p){return ALL_SK.filter(s=>(p.skills?.[s.id]||0)>=9);}
+
+// ═══════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════
 function showPage(id,tab){
@@ -821,7 +849,8 @@ function openAddPlayer(){
   editId=null;selectedComps=[];
   document.getElementById('mp-title').textContent='Nouveau Joueur';
   document.getElementById('p-edit-id').value='';
-  ['p-nom','p-pre','p-nat','p-forces','p-progres','p-cmt','p-val','p-contrat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['p-nom','p-pre','p-nat','p-forces','p-progres','p-cmt','p-val','p-contrat','p-obra'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('p-obra-stage').value='';
   ['p-age','p-tai','p-mat','p-buts','p-ast','p-dist','p-vmax'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('p-pie').value='Droit';
   document.getElementById('p-sta').value='Actif';
@@ -858,6 +887,8 @@ async function savePlayer(){
     forces:document.getElementById('p-forces').value||'',
     progres:document.getElementById('p-progres').value||'',
     comment:document.getElementById('p-cmt').value||'',
+    obra:document.getElementById('p-obra').value||'',
+    obraStage:document.getElementById('p-obra-stage').value||'',
     stats_m:parseInt(document.getElementById('p-mat').value)||0,
     stats_b:parseInt(document.getElementById('p-buts').value)||0,
     stats_a:parseInt(document.getElementById('p-ast').value)||0,
@@ -900,6 +931,7 @@ function openEditPlayer(id){
   document.getElementById('p-mat').value=p.stats_m||'';document.getElementById('p-buts').value=p.stats_b||'';
   document.getElementById('p-ast').value=p.stats_a||'';document.getElementById('p-dist').value=p.gps_dist||'';
   document.getElementById('p-vmax').value=p.gps_vmax||'';
+  document.getElementById('p-obra').value=p.obra||'';document.getElementById('p-obra-stage').value=p.obraStage||'';
   document.getElementById('p-profil-comps').value=p.profilComps||'';
   buildSliders('sk-tech',SKT,p);buildSliders('sk-phys',SKP,p);buildSliders('sk-ment',SKM,p);
   // Restaurer profil
@@ -943,6 +975,7 @@ function renderPlayers(){
     const profilCfg=p.profil?PROFILS[p.profil]:null;
     const top=ALL_SK.map(s=>({lb:s.lb,v:p.skills?.[s.id]||0})).sort((a,b)=>b.v-a.v).slice(0,3);
     const comps=p.profilComps?p.profilComps.split(',').filter(Boolean):[];
+    const spw=getSuperPowers(p);
     return`<div class="player-card" onclick="openDetail('${p.id}')">
       <div class="pc-top">
         <div class="pc-av">${init}</div>
@@ -957,8 +990,9 @@ function renderPlayers(){
         <div class="pc-ovr" style="color:${c};border-color:${c}">${o}</div>
       </div>
       ${comps.length?`<div style="font-size:10px;color:#63b3ed;margin-bottom:6px">💎 ${comps.join(' · ')}</div>`:''}
+      ${spw.length?`<div style="margin:4px 0 6px">${spw.map(s=>`<span class="sp-badge">⚡ ${s.lb}</span>`).join('')}</div>`:''}
       <div>${top.map(s=>`<div class="skill-row"><div class="skill-lbl">${s.lb}</div><div class="skill-track"><div class="skill-fill" style="width:${s.v*10}%;background:${barColor(s.v)}"></div></div><div class="skill-val">${s.v}</div></div>`).join('')}</div>
-      <div style="margin-top:8px;font-size:10px;color:rgba(255,255,255,.2)">Ajouté par ${p.addedBy||'—'}</div>
+      <div style="margin-top:8px;font-size:10px;color:rgba(255,255,255,.2)">${p.obraStage?`<span style="color:#a78bfa">🎨 ${p.obraStage}</span> · `:''}Ajouté par ${p.addedBy||'—'}</div>
     </div>`;
   }).join('');
 }
@@ -993,6 +1027,12 @@ function openDetail(id){
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#63b3ed;margin-bottom:8px">🏷 Profil du Joueur — ${p.profil}</div>
       <div style="font-size:12px;color:#718096;margin-bottom:${comps.length?'10px':'0'}">${profilCfg?.desc||''}</div>
       ${comps.length?`<div style="display:flex;flex-wrap:wrap;gap:6px">${comps.map(c=>`<span style="background:rgba(99,179,237,.15);border:1px solid rgba(99,179,237,.3);color:#63b3ed;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700">💎 ${c}</span>`).join('')}</div>`:''}
+    </div>`:''}
+
+    <!-- Superpouvoirs -->
+    ${getSuperPowers(p).length?`<div style="background:rgba(246,201,14,.06);border:1px solid rgba(246,201,14,.25);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f6c90e;margin-bottom:8px">⚡ Superpouvoirs</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${getSuperPowers(p).map(s=>`<span class="sp-badge">⚡ ${s.lb} <strong style="color:#fff;margin-left:3px">${p.skills[s.id]}/10</strong></span>`).join('')}</div>
     </div>`:''}
 
     <!-- Infos -->
@@ -1031,6 +1071,13 @@ function openDetail(id){
     ${(p.forces||p.progres)?`<div class="section" style="margin-bottom:12px"><div class="section-title">📝 Notes Staff</div>
       ${p.forces?`<div style="margin-bottom:10px"><div style="font-size:10px;color:#63b3ed;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Forces</div><div style="font-size:13px">${p.forces}</div></div>`:''}
       ${p.progres?`<div><div style="font-size:10px;color:#f6c90e;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Progression</div><div style="font-size:13px">${p.progres}</div></div>`:''}
+    </div>`:''}
+
+    <!-- Obra -->
+    ${p.obra||p.obraStage?`<div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.25);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#a78bfa;margin-bottom:8px">🎨 Obra — Projet de Développement</div>
+      ${p.obraStage?`<div style="margin-bottom:8px"><span style="background:rgba(167,139,250,.2);color:#a78bfa;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700">${p.obraStage}</span></div>`:''}
+      ${p.obra?`<div style="font-size:13px;color:#e2e8f0;line-height:1.6">${p.obra}</div>`:''}
     </div>`:''}
 
     <!-- Évaluations -->
@@ -1395,6 +1442,45 @@ function addAct(action,player){acts.unshift({who:CU.name,action,player,time:new 
 function showLoading(m){document.getElementById('ltxt').textContent=m||'…';document.getElementById('loading').classList.add('show');}
 function hideLoading(){document.getElementById('loading').classList.remove('show');}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+// ═══════════════════════════════════════
+//  OBRA
+// ═══════════════════════════════════════
+function renderObra(){
+  const el=document.getElementById('obra-content');if(!el)return;
+  const op=players.filter(p=>p.obra||p.obraStage);
+  if(!op.length){el.innerHTML='<div class="empty"><div class="empty-ico">🎨</div><h3>Aucun projet Obra</h3><p>Définissez un projet de développement dans la fiche d\'un joueur.</p></div>';return;}
+  const stages=['En observation','En développement','En progression','Prêt','Obra maîtrisée'];
+  const sCols={'En observation':'#718096','En développement':'#63b3ed','En progression':'#ed8936','Prêt':'#68d391','Obra maîtrisée':'#f6c90e'};
+  const sIco={'En observation':'👁','En développement':'🔨','En progression':'📈','Prêt':'✅','Obra maîtrisée':'🏆'};
+  const byS={};stages.forEach(s=>byS[s]=[]);
+  op.forEach(p=>{const st=p.obraStage||'En observation';(byS[st]||byS['En observation']).push(p);});
+  let html='<div class="section"><div class="section-title">📊 Résumé Obra</div><div class="stats-row">';
+  stages.forEach(s=>{if(byS[s]?.length)html+=`<div class="stat-box" style="border-left-color:${sCols[s]}"><div class="stat-n" style="color:${sCols[s]}">${byS[s].length}</div><div class="stat-l">${s}</div></div>`;});
+  html+='</div></div>';
+  stages.forEach(stage=>{
+    const ps=byS[stage];if(!ps.length)return;
+    const col=sCols[stage],ico=sIco[stage];
+    html+=`<div class="section" style="border-left:3px solid ${col}"><div class="section-title">${ico} ${stage} <span style="color:#718096;font-weight:400">(${ps.length})</span></div>`;
+    ps.forEach(p=>{
+      const o=ovr(p),spw=getSuperPowers(p);
+      html+=`<div class="obra-card" onclick="openDetail('${p.id}')">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:${p.obra||spw.length?'8px':'0'}">
+          <div class="pc-av" style="border-color:${col}">${(p.prenom[0]||'?')+(p.nom[0]||'?')}</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:700;color:#fff">${p.prenom} ${p.nom}</div>
+            <div style="margin-top:3px"><span class="badge b-${p.posGroup||'MIL'}">${p.posGroup||'—'}</span><span style="font-size:11px;color:#718096;margin-left:5px">${p.position?p.position.split('-').slice(1).join(' '):'—'}</span></div>
+          </div>
+          <div style="text-align:center"><div style="font-size:26px;font-weight:900;color:${ovrColor(o)}">${o}</div><div style="font-size:9px;color:#718096">OVR</div></div>
+        </div>
+        ${p.obra?`<div style="font-size:12px;color:#e2e8f0;background:rgba(167,139,250,.06);border-left:3px solid #a78bfa;padding:8px 10px;border-radius:0 6px 6px 0;margin-bottom:6px;font-style:italic">"${p.obra}"</div>`:''}
+        ${spw.length?`<div>${spw.map(s=>`<span class="sp-badge">⚡ ${s.lb}</span>`).join('')}</div>`:''}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
 
 // ═══════════════════════════════════════
 //  BOOT
