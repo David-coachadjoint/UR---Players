@@ -27,7 +27,13 @@ Une aptitude évaluée sur 10, classée en trois catégories : Technique, Physiq
 Une notation datée des Compétences d'un Joueur. Les évaluations s'accumulent dans le temps pour former un **historique de progression**. L'historique permet d'identifier les axes de progression et de déclencher les actions adéquates (travail physique, mental, tactique, technique) au bon moment.
 
 ### Historique de progression
-La série chronologique des Évaluations d'un Joueur du Noyau. Sert à mesurer l'évolution et à anticiper les décisions (plan d'action, recrutement, repositionnement).
+La série chronologique des Évaluations d'un Joueur du Noyau. Sert à mesurer l'évolution et à déclencher des Plans d'action ou des Alertes.
+
+### Plan d'action
+Un objectif de progression défini pour un Joueur du Noyau, avec une ou plusieurs Compétences ciblées et une échéance. Ex : "travailler vitesse + placement défensif avant mars".
+
+### Alerte
+Un signal automatique déclenché quand un Joueur régresse sur une Compétence clé entre deux Évaluations. Invite à une prise de décision (plan d'action, discussion, suivi renforcé).
 
 ### Manquement
 Un déficit identifié dans le Noyau — profil, compétence ou poste insuffisamment couvert — qui justifie l'ouverture d'une Recherche.
