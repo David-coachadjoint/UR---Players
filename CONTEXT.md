@@ -9,7 +9,7 @@ Un individu tracké dans l'application. Appartient à l'une des deux populations
 Les joueurs actuellement sous contrat ou engagés avec l'Union Rochefortoise. L'objectif est de les évaluer, comprendre leur profil, et former l'ADN de l'équipe.
 
 ### Cible
-Un joueur extérieur au club, identifié pour un recrutement futur. Fait l'objet d'un suivi dans la base de données de recrutement.
+Un joueur extérieur au club, identifié pour un recrutement futur. Dispose d'une **fiche de contexte** (poste, club actuel, niveau estimé, contact) et d'**observations datées** permettant de suivre son évolution et de la comparer à d'autres Cibles sur le même Manquement.
 
 ### ADN d'équipe
 La signature collective de l'équipe — l'ensemble des profils de joueurs du Noyau qui définissent le style de jeu et l'identité sportive du club.
