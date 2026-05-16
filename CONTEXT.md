@@ -21,7 +21,10 @@ Le ou les postes d'un Joueur (principal + secondaire), associés à ses compéte
 Une aptitude évaluée sur 10, classée en trois catégories : Technique, Physique, Mental.
 
 ### Évaluation
-Une notation des Compétences d'un Joueur à un instant donné. Permet de suivre la progression d'un joueur du Noyau ou d'affiner le suivi d'une Cible.
+Une notation datée des Compétences d'un Joueur. Les évaluations s'accumulent dans le temps pour former un **historique de progression**. L'historique permet d'identifier les axes de progression et de déclencher les actions adéquates (travail physique, mental, tactique, technique) au bon moment.
+
+### Historique de progression
+La série chronologique des Évaluations d'un Joueur du Noyau. Sert à mesurer l'évolution et à anticiper les décisions (plan d'action, recrutement, repositionnement).
 
 ### Manquement
 Un déficit identifié dans le Noyau — profil, compétence ou poste insuffisamment couvert — qui justifie l'ouverture d'une Recherche.
