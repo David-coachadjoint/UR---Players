@@ -29,8 +29,20 @@ Une notation datée des Compétences d'un Joueur. Les évaluations s'accumulent 
 ### Historique de progression
 La série chronologique des Évaluations d'un Joueur du Noyau. Sert à mesurer l'évolution et à déclencher des Plans d'action ou des Alertes.
 
-### Plan d'action
-Un objectif de progression défini pour un Joueur du Noyau, avec une ou plusieurs Compétences ciblées et une échéance. Ex : "travailler vitesse + placement défensif avant mars".
+### Résultat
+L'issue d'un match (victoire, match nul, défaite) avec son score, la Composition de départ, et les Changements effectués (joueur entrant, joueur sortant, minute).
+
+### Composition
+L'ensemble des joueurs du Noyau alignés pour un match, à un instant T. Sert de base pour calculer la Pondération de performance.
+
+### Changement
+Une substitution en cours de match : joueur sortant, joueur entrant, minute. Permet d'attribuer le Résultat à la bonne Composition. Ex : si 2 changements à la 75' et victoire 1-2, le Résultat est attribué à la Composition post-changement.
+
+### Pondération de performance
+Le poids d'un Résultat attribué à chaque Composition qui a joué ce match, proportionnel au temps de jeu. Permet de mesurer l'efficacité collective d'un groupe de joueurs sur la durée.
+
+### Choix optimal d'équipe
+La meilleure Composition possible à l'instant T, calculée en croisant l'Historique de progression individuel de chaque Joueur et la Pondération de performance des Compositions passées. Évolue dans le temps au fil des résultats et de la progression individuelle.
 
 ### Alerte
 Un signal automatique déclenché quand un Joueur régresse sur une Compétence clé entre deux Évaluations. Invite à une prise de décision (plan d'action, discussion, suivi renforcé).
