@@ -24,7 +24,15 @@ Une aptitude évaluée sur 10, classée en trois catégories : Technique, Physiq
 Une notation des Compétences d'un Joueur à un instant donné. Permet de suivre la progression d'un joueur du Noyau ou d'affiner le suivi d'une Cible.
 
 ### Manquement
-Un déficit identifié dans le Noyau — profil, compétence ou poste insuffisamment couvert — qui justifie l'ouverture d'une recherche de Cible.
+Un déficit identifié dans le Noyau — profil, compétence ou poste insuffisamment couvert — qui justifie l'ouverture d'une Recherche.
+
+### Recherche
+Une démarche de recrutement ouverte suite à un Manquement identifié. Une Recherche est associée à un Profil cible et génère le suivi de plusieurs Cibles.
+
+## Flux principal
+
+Noyau évalué → Manquement identifié → Recherche ouverte → Cibles suivies.
+Les deux missions (gestion du Noyau et recrutement) sont liées : le recrutement découle de l'analyse du Noyau.
 
 ## Utilisateurs
 
