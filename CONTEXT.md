@@ -18,7 +18,7 @@ La signature collective du Noyau — répartition des Profils de poste et niveau
 L'orientation tactique qui émerge de l'ADN d'équipe (ex : transition rapide, possession, jeu direct). N'est pas choisi arbitrairement — il est lu dans les données du Noyau et sert de boussole pour les décisions d'entraînement et de recrutement.
 
 ### Profil
-Le ou les postes d'un Joueur (principal + secondaire), associés à ses compétences caractéristiques. Sert à positionner un Joueur dans l'ADN d'équipe ou à identifier une Cible pour un manquement.
+L'ensemble des postes qu'un Joueur peut occuper (ex : Latéral + Ailier). Un Profil peut comporter plusieurs postes simultanément et **évoluer en cours de saison** si le joueur performe sur un nouveau poste. Sert à positionner un Joueur dans l'ADN d'équipe ou à identifier une Cible pour un Manquement.
 
 ### Compétence
 Une aptitude évaluée sur 10, classée en trois catégories : Technique, Physique, Mental.
