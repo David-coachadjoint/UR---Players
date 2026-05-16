@@ -46,6 +46,12 @@ Une démarche de recrutement ouverte suite à un Manquement identifié. Une Rech
 Noyau évalué → Manquement identifié → Recherche ouverte → Cibles suivies.
 Les deux missions (gestion du Noyau et recrutement) sont liées : le recrutement découle de l'analyse du Noyau.
 
-## Utilisateurs
+## Contexte sportif
 
-Un seul utilisateur : le directeur sportif (David). Pas de collaboration multi-utilisateurs.
+**Club** : Union Rochefortoise (UR)
+**Compétition** : National 1 ACFF — 3e division belge
+**Utilisateur** : le directeur sportif (David). App mono-utilisateur, pas de collaboration.
+
+## Saison et historique
+
+L'historique d'un Joueur est **cumulatif sur plusieurs saisons** — les Évaluations ne sont pas effacées en fin de saison. La notion de saison (ex : 2024-2025) sert à contextualiser les données mais ne réinitialise pas l'historique.
