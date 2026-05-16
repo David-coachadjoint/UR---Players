@@ -12,7 +12,10 @@ Les joueurs actuellement sous contrat ou engagés avec l'Union Rochefortoise. L'
 Un joueur extérieur au club, identifié pour un recrutement futur. Dispose d'une **fiche de contexte** (poste, club actuel, niveau estimé, contact) et d'**observations datées** permettant de suivre son évolution et de la comparer à d'autres Cibles sur le même Manquement.
 
 ### ADN d'équipe
-La signature collective de l'équipe — l'ensemble des profils de joueurs du Noyau qui définissent le style de jeu et l'identité sportive du club.
+La signature collective du Noyau — répartition des Profils de poste et niveau moyen par catégorie de Compétences (Technique, Physique, Mental). Révèle si l'équipe est naturellement axée sur la transition, la possession, le jeu direct, etc. Sert à adapter le plan de jeu et les entraînements pour mettre en valeur les forces collectives réelles de l'équipe.
+
+### Style de jeu
+L'orientation tactique qui émerge de l'ADN d'équipe (ex : transition rapide, possession, jeu direct). N'est pas choisi arbitrairement — il est lu dans les données du Noyau et sert de boussole pour les décisions d'entraînement et de recrutement.
 
 ### Profil
 Le ou les postes d'un Joueur (principal + secondaire), associés à ses compétences caractéristiques. Sert à positionner un Joueur dans l'ADN d'équipe ou à identifier une Cible pour un manquement.
