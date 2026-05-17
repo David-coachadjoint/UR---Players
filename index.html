@@ -600,6 +600,49 @@ const SKM=[
 const ALL_SK=[...SKT,...SKP,...SKM];
 
 // ═══════════════════════════════════════
+//  CHANTIER 2 — STYLE DE JEU & MANQUEMENTS
+// ═══════════════════════════════════════
+const STYLES_JEU=[
+  {id:'transition',label:'Transition rapide',emoji:'⚡',color:'#fc8181',
+   test:a=>a.phys>=6.5&&a.vit>=6&&a.tech<6.5,
+   desc:'Équipe verticale et explosive — contre-attaque rapide, exploitation des espaces en profondeur.',
+   train:['Transitions défense→attaque (3v2, 4v3 avec finition)','Pressing haut et déclenchement de la récupération haute','Répétitions de finition en contre-attaque et appels en profondeur']},
+  {id:'possession',label:'Possession / Combinaisons',emoji:'🔄',color:'#63b3ed',
+   test:a=>a.tech>=6.5&&a.vis>=6&&a.dist>=6,
+   desc:'Équipe technique et combinatoire — circulation du ballon, construction depuis l\'arrière, jeu positionnel.',
+   train:['Rondos et possession courte (4v2, 5v2, 6v3)','Sorties de balle organisées et relances sous pression','Pressing collectif et contre-pressing après perte']},
+  {id:'direct',label:'Jeu direct / Physique',emoji:'💪',color:'#68d391',
+   test:a=>a.phys>=6.5&&a.force>=6&&a.tech<6,
+   desc:'Équipe physiquement dominante — duels aériens, seconds ballons, jeu long sur les attaquants de référence.',
+   train:['Secondes balles et duels aériens (ateliers spécifiques)','Jeu en zone de finition et fixation d\'adversaires','Pressing agressif et reconquête physique après perte']},
+  {id:'mental',label:'Bloc tactique / Mental',emoji:'🧠',color:'#f6c90e',
+   test:a=>a.ment>=6.5&&a.intel>=6,
+   desc:'Équipe tactiquement solide et résiliente — bloc compact, lecture collective, gestion des situations de match.',
+   train:['Blocs défensifs et scénarios de score (mener, égalisation, résister)','Jeux de position sous contrainte mentale et arbitrage','Cohésion, communication et préparation mentale collective']},
+  {id:'equilibre',label:'Profil équilibré',emoji:'⚖️',color:'#a78bfa',
+   test:()=>true,
+   desc:'Pas de dominante marquée — équipe adaptable tactiquement mais sans identité de jeu forte. Opportunité de construire un style clair.',
+   train:['Définir et travailler une identité de jeu par la répétition','Renforcer les 2-3 points forts existants du groupe','Travailler les transitions pour créer des automatismes collectifs']}
+];
+
+const CIBLES_POSTE={GK:2,DEF:7,MIL:8,ATT:5};
+
+function calcStyleJeu(){
+  if(!players.length)return STYLES_JEU[STYLES_JEU.length-1];
+  const n=players.length;
+  const sk=ids=>ids.reduce((s,id)=>s+players.reduce((a,p)=>a+(p.skills?.[id]||0),0)/n,0)/ids.length;
+  const a={
+    tech:sk(SKT.map(s=>s.id)),phys:sk(SKP.map(s=>s.id)),ment:sk(SKM.map(s=>s.id)),
+    vit:players.reduce((s,p)=>s+(p.skills?.vitesse||0),0)/n,
+    force:players.reduce((s,p)=>s+(p.skills?.force||0),0)/n,
+    vis:players.reduce((s,p)=>s+(p.skills?.vision||0),0)/n,
+    dist:players.reduce((s,p)=>s+(p.skills?.distribution||0),0)/n,
+    intel:players.reduce((s,p)=>s+(p.skills?.intel_t||0),0)/n
+  };
+  return STYLES_JEU.find(s=>s.test(a))||STYLES_JEU[STYLES_JEU.length-1];
+}
+
+// ═══════════════════════════════════════
 //  PROFILS JOUEUR — Configuration complète
 // ═══════════════════════════════════════
 const PROFILS={
@@ -1171,7 +1214,35 @@ function renderADN(){
   const critiques=allAvgs.filter(s=>s.avg<4.5);
   const ameliorer=allAvgs.filter(s=>s.avg>=4.5&&s.avg<6);
 
+  // Chantier 2 — Style de jeu & Manquements par poste
+  const style=calcStyleJeu();
+  const posteDist={GK:0,DEF:0,MIL:0,ATT:0};
+  players.forEach(p=>{if(posteDist[p.posGroup]!==undefined)posteDist[p.posGroup]++;});
+  const manqPoste=Object.entries(CIBLES_POSTE).filter(([k,v])=>posteDist[k]<v).map(([k,v])=>({poste:k,actual:posteDist[k],cible:v,manque:v-posteDist[k]}));
+  const surPoste=Object.entries(CIBLES_POSTE).filter(([k,v])=>posteDist[k]>v).map(([k,v])=>({poste:k,actual:posteDist[k],cible:v,surplus:posteDist[k]-v}));
+  const pColors={GK:'#ed8936',DEF:'#63b3ed',MIL:'#68d391',ATT:'#fc8181'};
+  const pNames={GK:'Gardiens',DEF:'Défenseurs',MIL:'Milieux',ATT:'Attaquants'};
+
   let html=`
+  <!-- Style de jeu -->
+  <div class="adn-section" style="border-left:4px solid ${style.color}">
+    <div class="section-title">🎮 Style de Jeu Dominant</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+      <div style="font-size:42px;line-height:1">${style.emoji}</div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:${style.color}">${style.label}</div>
+        <div style="font-size:12px;color:#718096;margin-top:5px;line-height:1.6">${style.desc}</div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid #2d4a7a;border-radius:8px;padding:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#63b3ed;margin-bottom:10px">💡 Recommandations d'entraînement</div>
+      ${style.train.map((t,i)=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;${i<style.train.length-1?'border-bottom:1px solid rgba(255,255,255,.05)':''}">
+        <div style="width:20px;height:20px;border-radius:50%;background:${style.color}22;border:1px solid ${style.color}55;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:${style.color};flex-shrink:0">${i+1}</div>
+        <div style="font-size:13px;color:#e2e8f0;line-height:1.4">${t}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
   <!-- Vue globale -->
   <div class="adn-section">
     <div class="section-title">📊 Vue Globale de l'Équipe</div>
@@ -1229,6 +1300,37 @@ function renderADN(){
         <div style="font-size:20px;font-weight:900;color:${isCrit?'#fc8181':'#ed8936'}">${s.avg.toFixed(1)}</div>
       </div>`;
     }).join('')}
+  </div>
+
+  <!-- Manquements par poste -->
+  <div class="adn-section" style="border-left:3px solid #ed8936">
+    <div class="section-title">🔍 Manquements Collectifs par Poste</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+      ${Object.entries(CIBLES_POSTE).map(([k,v])=>{
+        const actual=posteDist[k]||0;const ok=actual>=v;const diff=actual-v;
+        return`<div class="stat-box" style="border-left-color:${ok?'#68d391':'#fc8181'}">
+          <div style="font-size:10px;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${pNames[k]}</div>
+          <div style="display:flex;align-items:baseline;gap:4px;justify-content:center">
+            <span style="font-size:28px;font-weight:900;color:${ok?'#68d391':'#fc8181'}">${actual}</span>
+            <span style="font-size:12px;color:#4a6080">/ ${v}</span>
+          </div>
+          <div style="font-size:10px;margin-top:3px;color:${ok?'#68d391':diff<-2?'#fc8181':'#ed8936'}">${ok?'✓ OK':diff===-1?'−1 manquant':diff<-1?`${diff} manquants`:'OK'}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${manqPoste.length?`<div style="background:rgba(252,129,129,.07);border:1px solid rgba(252,129,129,.25);border-radius:8px;padding:12px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fc8181;margin-bottom:8px">⚠ Postes déficitaires — orienter le recrutement</div>
+      ${manqPoste.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(252,129,129,.15)">
+        <span class="badge b-${m.poste}">${m.poste}</span>
+        <div style="flex:1;font-size:13px;color:#e2e8f0">${pNames[m.poste]}</div>
+        <div style="font-size:11px;color:#718096">${m.actual} présent${m.actual>1?'s':''} · cible ${m.cible}</div>
+        <div style="font-size:13px;font-weight:700;color:#fc8181">−${m.manque}</div>
+      </div>`).join('')}
+    </div>`:manqPoste.length===0?`<div style="color:#68d391;font-size:13px;padding:4px 0">✅ Effectif équilibré par poste — tous les quotas sont atteints.</div>`:''}
+    ${surPoste.length?`<div style="background:rgba(237,137,54,.06);border:1px solid rgba(237,137,54,.2);border-radius:8px;padding:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#ed8936;margin-bottom:7px">📦 Postes excédentaires</div>
+      ${surPoste.map(m=>`<div style="font-size:12px;color:#718096;padding:4px 0"><span class="badge b-${m.poste}">${m.poste}</span> <strong style="color:#e2e8f0">${pNames[m.poste]}</strong> — ${m.actual} joueurs · cible ${m.cible} (+${m.surplus})</div>`).join('')}
+    </div>`:''}
   </div>
 
   <!-- Profils dans l'équipe -->
