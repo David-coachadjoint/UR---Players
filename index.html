@@ -211,6 +211,10 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
 .plan-box{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:14px;margin-bottom:12px}
 .plan-skill{display:inline-block;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:#a78bfa;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin:2px 2px 2px 0}
 
+/* RECRUTEMENT */
+.rech-card{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:12px;padding:16px;margin-bottom:12px}
+.rech-card.conclue{border-color:rgba(104,211,145,.3);opacity:.85}
+
 /* RESPONSIVE */
 @media(max-width:640px){
   .form-row,.form-row-3{grid-template-columns:1fr}
@@ -284,6 +288,7 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     <button class="nav-tab" onclick="showPage('p-adn',this);renderADN()">🧬 ADN Équipe</button>
     <button class="nav-tab" onclick="showPage('p-compare',this);renderCompare()">⚖️ Comparatif</button>
     <button class="nav-tab" onclick="showPage('p-eval',this);initEval()">📅 Évaluations</button>
+    <button class="nav-tab" onclick="showPage('p-recrutement',this);renderRecrutement()">🎯 Recrutement</button>
     <button class="nav-tab" onclick="showPage('p-admin',this);renderAdmin()" id="tab-admin" style="display:none">🛡 Admin</button>
   </div>
 
@@ -363,6 +368,19 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     </div>
 
     <div class="section"><div class="section-title">📜 Historique</div><div id="eval-hist"></div></div>
+  </div>
+
+  <!-- RECRUTEMENT -->
+  <div class="page" id="p-recrutement">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:22px;font-weight:900;color:#fff">Base <span style="color:#63b3ed">Recrutement</span><div style="font-size:12px;color:#718096;font-weight:400" id="recr-count">—</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o" onclick="openRechercheModal()">+ Recherche</button>
+        <button class="btn btn-p" onclick="openCibleModal()">+ Cible</button>
+      </div>
+    </div>
+    <div class="stats-row" id="recr-stats"></div>
+    <div id="recrutement-content"></div>
   </div>
 
   <!-- ADMIN -->
@@ -531,6 +549,94 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
       <button class="btn btn-p" style="flex:1" id="as-save-btn" onclick="saveStaff()">✅ Créer</button>
     </div>
     <input type="hidden" id="as-edit-id">
+  </div>
+</div>
+
+<!-- MODAL CIBLE -->
+<div class="overlay" id="modal-cible" onclick="closeModalOut(event,'modal-cible')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-cible')">✕</button>
+    <div class="modal-title" id="cib-title">Nouvelle Cible</div>
+    <div class="section"><div class="section-title">👤 Identité</div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Nom *</label><input type="text" class="fi" id="cib-nom"></div>
+        <div class="fg"><label class="fl">Prénom</label><input type="text" class="fi" id="cib-pre"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Club actuel</label><input type="text" class="fi" id="cib-club" placeholder="ex: RFC Liège"></div>
+        <div class="fg"><label class="fl">Niveau estimé</label><input type="text" class="fi" id="cib-niveau" placeholder="ex: National 2, Régional"></div>
+      </div>
+      <div class="fg"><label class="fl">Contact</label><input type="text" class="fi" id="cib-contact" placeholder="email, tél, agent…"></div>
+    </div>
+    <div class="section"><div class="section-title">⚽ Poste</div>
+      <select class="fs" id="cib-pos" style="width:100%">
+        <option value="">— Sélectionner —</option>
+        <optgroup label="Gardiens"><option value="GK-Gardien moderne">Gardien moderne</option><option value="GK-Gardien fixe">Gardien fixe</option></optgroup>
+        <optgroup label="Défenseurs"><option value="DEF-Défenseur central">Défenseur central</option><option value="DEF-DC Relanceur">DC - Relanceur</option><option value="DEF-Latéral moderne">Arrière-latéral moderne</option><option value="DEF-Latéral offensif">Latéral offensif</option><option value="DEF-Latéral strict">Défenseur latéral strict</option></optgroup>
+        <optgroup label="Milieux"><option value="MIL-Milieu défensif">Milieu défensif</option><option value="MIL-Récupérateur">Milieu récupérateur</option><option value="MIL-Sentinelle">Milieu sentinelle</option><option value="MIL-Axial">Milieu axial</option><option value="MIL-Meneur retrait">Meneur de jeu en retrait</option><option value="MIL-Meneur avancé">Meneur de jeu avancé</option><option value="MIL-Complet">Milieu complet</option></optgroup>
+        <optgroup label="Attaquants"><option value="ATT-Pivot">Pivot</option><option value="ATT-16m">Joueur des 16m</option><option value="ATT-Retrait">Attaquant en retrait</option><option value="ATT-Excentré">Attaquant excentré</option><option value="ATT-Complet">Attaquant complet</option><option value="ATT-Profondeur">Attaquant de profondeur</option></optgroup>
+      </select>
+    </div>
+    <div class="section"><div class="section-title">🔍 Lier à une Recherche</div>
+      <select class="fs" id="cib-rech" style="width:100%"><option value="">— Aucune —</option></select>
+    </div>
+    <div class="section"><div class="section-title">📝 Notes générales</div>
+      <textarea class="fi" id="cib-notes" rows="3" placeholder="Informations contextuelles, impression générale…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-cible')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveCible()">💾 Enregistrer</button>
+    </div>
+    <input type="hidden" id="cib-edit-id">
+  </div>
+</div>
+
+<!-- MODAL OBSERVATION -->
+<div class="overlay" id="modal-obs" onclick="closeModalOut(event,'modal-obs')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-obs')">✕</button>
+    <div class="modal-title">📋 Observation — <span id="obs-cible-name" style="font-size:16px;color:#63b3ed">—</span></div>
+    <div class="section">
+      <div class="form-row">
+        <div class="fg"><label class="fl">Mois</label><input type="month" class="fi" id="obs-date"></div>
+        <div class="fg"><label class="fl">Contexte</label><input type="text" class="fi" id="obs-context" placeholder="Match, vidéo, entraînement…"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Technique — <span id="obs-vt" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-t" oninput="document.getElementById('obs-vt').textContent=this.value"></div>
+        <div class="fg"><label class="fl">Tactique — <span id="obs-vta" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-ta" oninput="document.getElementById('obs-vta').textContent=this.value"></div>
+        <div class="fg"><label class="fl">Physique — <span id="obs-vp" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-p" oninput="document.getElementById('obs-vp').textContent=this.value"></div>
+        <div class="fg"><label class="fl">Mental — <span id="obs-vm" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-m" oninput="document.getElementById('obs-vm').textContent=this.value"></div>
+      </div>
+      <div class="fg"><label class="fl">Notes d'observation</label><textarea class="fi" id="obs-note" rows="3" placeholder="Points forts observés, comportement, impression générale…"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-obs')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveObs()">💾 Sauvegarder l'observation</button>
+    </div>
+    <input type="hidden" id="obs-cible-id">
+  </div>
+</div>
+
+<!-- MODAL RECHERCHE -->
+<div class="overlay" id="modal-rech" onclick="closeModalOut(event,'modal-rech')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-rech')">✕</button>
+    <div class="modal-title" id="rech-title">Nouvelle Recherche</div>
+    <div class="section">
+      <div class="fg"><label class="fl">Titre *</label><input type="text" class="fi" id="rech-titre" placeholder="ex: Défenseur central relanceur"></div>
+      <div class="fg"><label class="fl">Poste prioritaire</label>
+        <select class="fs" id="rech-poste" style="width:100%"><option value="">—</option><option value="GK">Gardien</option><option value="DEF">Défenseur</option><option value="MIL">Milieu</option><option value="ATT">Attaquant</option></select>
+      </div>
+      <div class="fg"><label class="fl">Manquement identifié</label><textarea class="fi" id="rech-manq" rows="2" placeholder="Décrivez le besoin dans le noyau…"></textarea></div>
+      <div class="fg"><label class="fl">Statut</label>
+        <select class="fs" id="rech-statut" style="width:100%"><option value="ouverte">🟡 Ouverte</option><option value="en_cours">🔵 En cours</option><option value="conclue">🟢 Conclue</option></select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-rech')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveRecherche()">💾 Enregistrer</button>
+    </div>
+    <input type="hidden" id="rech-edit-id">
   </div>
 </div>
 
@@ -727,7 +833,7 @@ const TOUTES_COMPS=[
 // ═══════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════
-let players=[],evals=[],plans=[],acts=[],staffList=[],requests=[];
+let players=[],evals=[],plans=[],cibles=[],recherches=[],acts=[],staffList=[],requests=[];
 let CU=null,editId=null,posFilter='';
 let CFG={bin:'',key:''};
 const KS='ur6_sess',KD='ur6_data',KC='ur6_cfg';
@@ -792,7 +898,7 @@ async function syncCloud(){
     const d=await r.json();
     const prev=JSON.stringify(players);
     if(d.players)players=d.players;if(d.evaluations)evals=d.evaluations;
-    if(d.plans)plans=d.plans;if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
+    if(d.plans)plans=d.plans;if(d.cibles)cibles=d.cibles;if(d.recherches)recherches=d.recherches;if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
     saveLocal();setSyncOk();
     if(JSON.stringify(players)!==prev){renderDashboard();renderPlayers();initSelects();}
     if(CU?.isAdmin&&requests.filter(r=>r.status==='pending').length>0)document.getElementById('notif-dot').classList.add('show');
@@ -802,7 +908,7 @@ async function pushCloud(){
   if(!CFG.bin||!CFG.key){saveLocal();return false;}
   setSyncBusy();
   try{
-    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,plans,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
+    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,plans,cibles,recherches,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
     saveLocal();setSyncOk();return true;
   }catch(e){setSyncErr();saveLocal();return false;}
 }
@@ -819,15 +925,15 @@ async function saveCfg(){
     if(!r.ok)throw new Error();
     const d=await r.json();
     if(!d.players||!d.players.length)await pushCloud();
-    else{players=d.players||[];evals=d.evaluations||[];plans=d.plans||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
+    else{players=d.players||[];evals=d.evaluations||[];plans=d.plans||[];cibles=d.cibles||[];recherches=d.recherches||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
     box.innerHTML='<div class="cfg-status cfg-ok">✅ Connexion réussie ! Sauvegarde permanente active.</div>';
     renderDashboard();renderPlayers();initSelects();toast('✓ JSONBin connecté !');
   }catch(e){box.innerHTML='<div class="cfg-status cfg-err">❌ Erreur — vérifiez BIN ID et Master Key</div>';}
 }
 
 // LOCAL STORAGE
-function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,plans,acts,staffList,requests,ts:Date.now()}));}
-function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];plans=o.plans||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
+function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,plans,cibles,recherches,acts,staffList,requests,ts:Date.now()}));}
+function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];plans=o.plans||[];cibles=o.cibles||[];recherches=o.recherches||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
 
 // ═══════════════════════════════════════
 //  SCORING
@@ -1729,6 +1835,327 @@ function renderPlanHTML(pid){
       <button class="btn btn-g btn-sm" onclick="completePlan('${plan.id}')">✅ Terminer</button>
     </div>
   </div>`;
+}
+
+// ═══════════════════════════════════════
+//  CHANTIER 3 — RECRUTEMENT / CIBLES
+// ═══════════════════════════════════════
+const SC_RECH={ouverte:{lb:'Ouverte',c:'#f6c90e'},en_cours:{lb:'En cours',c:'#63b3ed'},conclue:{lb:'Conclue',c:'#68d391'}};
+
+function renderRecrutement(){
+  const actives=cibles.filter(c=>c.statut!=='archived');
+  const archived=cibles.filter(c=>c.statut==='archived');
+  const statsEl=document.getElementById('recr-stats');
+  if(statsEl)statsEl.innerHTML=`
+    <div class="stat-box"><div class="stat-n">${actives.length}</div><div class="stat-l">Cibles actives</div></div>
+    <div class="stat-box" style="border-left-color:#63b3ed"><div class="stat-n" style="color:#63b3ed">${recherches.length}</div><div class="stat-l">Recherches</div></div>
+    <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${recherches.filter(r=>r.statut!=='conclue').length}</div><div class="stat-l">En cours</div></div>
+    <div class="stat-box" style="border-left-color:#a78bfa"><div class="stat-n" style="color:#a78bfa">${cibles.reduce((a,c)=>a+c.observations.length,0)}</div><div class="stat-l">Observations</div></div>
+  `;
+  const cnt=document.getElementById('recr-count');
+  if(cnt)cnt.textContent=`${actives.length} cible${actives.length>1?'s':''} · ${recherches.length} recherche${recherches.length>1?'s':''}`;
+  const el=document.getElementById('recrutement-content');if(!el)return;
+  if(!recherches.length&&!cibles.length){el.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><h3>Base de recrutement vide</h3><p>Créez une Recherche pour structurer votre pipeline, puis ajoutez des Cibles.</p></div>';return;}
+
+  let html='<div class="section"><div class="section-title">🔍 Recherches ('+recherches.length+')</div>';
+  if(!recherches.length){html+='<div style="color:#718096;font-size:13px">Aucune recherche — cliquez &quot;+ Recherche&quot; pour démarrer.</div>';}
+  else html+=recherches.slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(r=>{
+    const sc=SC_RECH[r.statut]||SC_RECH.ouverte;
+    const linked=cibles.filter(c=>c.rechercheId===r.id&&c.statut!=='archived');
+    return`<div class="rech-card${r.statut==='conclue'?' conclue':''}">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+        ${r.poste?`<span class="badge b-${r.poste}" style="flex-shrink:0">${r.poste}</span>`:''}
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:#e2e8f0">${r.titre}</div>
+          ${r.manquement?`<div style="font-size:11px;color:#718096;margin-top:3px;font-style:italic">${r.manquement}</div>`:''}
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <span style="background:${sc.c}18;border:1px solid ${sc.c}44;color:${sc.c};padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700">${sc.lb}</span>
+          <button class="btn btn-o btn-sm" onclick="openRechercheModal('${r.id}')">✏️</button>
+          <button class="btn btn-d btn-sm" onclick="deleteRecherche('${r.id}')">🗑</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:30px">
+        ${linked.length?linked.map(c=>`<div style="background:#0e1a2e;border:1px solid #2d4a7a;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer" onclick="openCibleDetail('${c.id}')">
+          <strong style="color:#e2e8f0">${c.prenom?c.prenom+' ':''}${c.nom}</strong>
+          ${c.club?`<span style="color:#718096"> · ${c.club}</span>`:''}
+          ${c.observations.length?`<span style="color:#a78bfa;margin-left:5px">· ${c.observations.length} obs</span>`:''}
+        </div>`).join(''):'<div style="color:#4a6080;font-size:12px;font-style:italic;padding:5px 0">Aucune cible liée.</div>'}
+      </div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-o btn-sm" onclick="openCibleModal(null,'${r.id}')">+ Cible</button>
+        ${linked.length>=2?`<button class="btn btn-o btn-sm" onclick="comparerCibles('${r.id}')">⚖️ Comparer</button>`:''}
+        <div style="margin-left:auto">
+          <select class="filter-sel" style="font-size:11px;padding:5px 8px" onchange="updateRechercheStatut('${r.id}',this.value)">
+            <option value="ouverte"${r.statut==='ouverte'?' selected':''}>🟡 Ouverte</option>
+            <option value="en_cours"${r.statut==='en_cours'?' selected':''}>🔵 En cours</option>
+            <option value="conclue"${r.statut==='conclue'?' selected':''}>🟢 Conclue</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  html+='</div>';
+
+  const libres=actives.filter(c=>!c.rechercheId);
+  if(libres.length)html+=`<div class="section"><div class="section-title">🎯 Cibles sans recherche (${libres.length})</div><div class="players-grid">${libres.map(c=>renderCibleCard(c)).join('')}</div></div>`;
+  if(archived.length)html+=`<div class="section"><div class="section-title">📦 Archives (${archived.length})</div><div class="players-grid">${archived.map(c=>renderCibleCard(c)).join('')}</div></div>`;
+  el.innerHTML=html;
+}
+
+function renderCibleCard(c){
+  const init=(c.prenom?c.prenom[0]:'?')+(c.nom?c.nom[0]:'?');
+  const lastObs=[...c.observations].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const avgScore=lastObs?((lastObs.t+lastObs.ta+lastObs.p+lastObs.m)/4).toFixed(1):null;
+  return`<div class="player-card" onclick="openCibleDetail('${c.id}')">
+    <div class="pc-top">
+      <div class="pc-av" style="background:linear-gradient(135deg,#1a2a5e,#553c9a)">${init}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:#fff">${c.prenom?c.prenom+' ':''}${c.nom}</div>
+        <div style="font-size:11px;color:#718096">${[c.club,c.niveauEstime].filter(Boolean).join(' · ')||'—'}</div>
+        <div style="margin-top:4px">
+          ${c.posGroup?`<span class="badge b-${c.posGroup}">${c.posGroup}</span>`:''}
+          ${c.statut==='archived'?'<span class="badge" style="background:rgba(113,128,150,.15);color:#718096;border:1px solid #2d4a7a">Archivé</span>':''}
+        </div>
+      </div>
+      ${avgScore?`<div class="pc-ovr" style="color:#a78bfa;border-color:#a78bfa;font-size:14px">${avgScore}</div>`:'<div class="pc-ovr" style="color:#4a6080;border-color:#2d4a7a;font-size:11px">N/A</div>'}
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#718096">${c.observations.length?`${c.observations.length} obs · Dernière : ${lastObs.date}`:'Aucune observation'}</div>
+  </div>`;
+}
+
+function openCibleModal(id,rechId){
+  document.getElementById('cib-edit-id').value=id||'';
+  const c=id?cibles.find(x=>x.id===id):null;
+  document.getElementById('cib-title').textContent=c?'Modifier la Cible':'Nouvelle Cible';
+  document.getElementById('cib-nom').value=c?.nom||'';
+  document.getElementById('cib-pre').value=c?.prenom||'';
+  document.getElementById('cib-club').value=c?.club||'';
+  document.getElementById('cib-niveau').value=c?.niveauEstime||'';
+  document.getElementById('cib-contact').value=c?.contact||'';
+  document.getElementById('cib-pos').value=c?.position||'';
+  document.getElementById('cib-notes').value=c?.notes||'';
+  const rs=document.getElementById('cib-rech');
+  rs.innerHTML='<option value="">— Aucune —</option>'+recherches.filter(r=>r.statut!=='conclue').map(r=>`<option value="${r.id}"${(c?.rechercheId||rechId)===r.id?' selected':''}>${r.titre}</option>`).join('');
+  if(!c&&rechId)rs.value=rechId;
+  openModal('modal-cible');
+}
+
+async function saveCible(){
+  const nom=document.getElementById('cib-nom').value.trim();
+  if(!nom){toast('⚠ Le nom est obligatoire');return;}
+  const pos=document.getElementById('cib-pos').value;
+  const eid=document.getElementById('cib-edit-id').value;
+  const existing=eid?cibles.find(x=>x.id===eid):null;
+  const c={
+    id:eid||'cib_'+Date.now(),nom,
+    prenom:document.getElementById('cib-pre').value.trim(),
+    club:document.getElementById('cib-club').value.trim(),
+    niveauEstime:document.getElementById('cib-niveau').value.trim(),
+    contact:document.getElementById('cib-contact').value.trim(),
+    position:pos,posGroup:pos?pos.split('-')[0]:'',
+    notes:document.getElementById('cib-notes').value.trim(),
+    rechercheId:document.getElementById('cib-rech').value||null,
+    statut:existing?.statut||'active',
+    observations:existing?.observations||[],
+    createdAt:existing?.createdAt||new Date().toISOString(),
+    updatedAt:new Date().toISOString(),by:CU.name
+  };
+  if(eid){const i=cibles.findIndex(x=>x.id===eid);if(i>=0)cibles[i]=c;}else cibles.push(c);
+  addAct(eid?'a modifié la cible':'a ajouté la cible',`${c.prenom?c.prenom+' ':''}${c.nom}`);
+  const ok=await pushCloud();
+  closeModal('modal-cible');renderRecrutement();
+  toast(ok?`✓ ${c.nom} sauvegardé`:`✓ ${c.nom} sauvegardé localement`);
+}
+
+async function archiveCible(id){
+  const c=cibles.find(x=>x.id===id);if(!c)return;
+  c.statut=c.statut==='archived'?'active':'archived';c.updatedAt=new Date().toISOString();
+  await pushCloud();closeModal('modal-detail');renderRecrutement();
+  toast(c.statut==='archived'?'📦 Cible archivée':'✓ Cible restaurée');
+}
+
+async function deleteCiblePermanent(id){
+  const c=cibles.find(x=>x.id===id);
+  if(!confirm(`Supprimer définitivement ${c?.prenom?c.prenom+' ':''}${c?.nom} ?`))return;
+  cibles=cibles.filter(x=>x.id!==id);
+  await pushCloud();closeModal('modal-detail');renderRecrutement();toast('Cible supprimée');
+}
+
+function openObsModal(cibleId){
+  const c=cibles.find(x=>x.id===cibleId);if(!c)return;
+  document.getElementById('obs-cible-id').value=cibleId;
+  document.getElementById('obs-cible-name').textContent=`${c.prenom?c.prenom+' ':''}${c.nom}`;
+  const now=new Date();
+  document.getElementById('obs-date').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  ['obs-context','obs-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['obs-t','obs-ta','obs-p','obs-m'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=5;});
+  ['obs-vt','obs-vta','obs-vp','obs-vm'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=5;});
+  openModal('modal-obs');
+}
+
+async function saveObs(){
+  const cid=document.getElementById('obs-cible-id').value;
+  const date=document.getElementById('obs-date').value;
+  if(!cid||!date){toast('⚠ Date obligatoire');return;}
+  const c=cibles.find(x=>x.id===cid);if(!c)return;
+  c.observations.push({
+    id:'obs_'+Date.now(),date,
+    t:+document.getElementById('obs-t').value,ta:+document.getElementById('obs-ta').value,
+    p:+document.getElementById('obs-p').value,m:+document.getElementById('obs-m').value,
+    context:document.getElementById('obs-context').value.trim(),
+    note:document.getElementById('obs-note').value.trim(),
+    by:CU.name,ts:new Date().toISOString()
+  });
+  c.updatedAt=new Date().toISOString();
+  const ok=await pushCloud();closeModal('modal-obs');
+  toast(ok?'✓ Observation sauvegardée':'✓ Sauvegardé localement');
+  openCibleDetail(cid);
+}
+
+function openCibleDetail(id){
+  const c=cibles.find(x=>x.id===id);if(!c)return;
+  const r=c.rechercheId?recherches.find(x=>x.id===c.rechercheId):null;
+  const init=(c.prenom?c.prenom[0]:'?')+(c.nom?c.nom[0]:'?');
+  const obs=[...c.observations].sort((a,b)=>b.date.localeCompare(a.date));
+  const lastAvg=obs.length?((obs[0].t+obs[0].ta+obs[0].p+obs[0].m)/4).toFixed(1):null;
+  document.getElementById('detail-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2d4a7a">
+      <div class="pc-av" style="width:54px;height:54px;font-size:20px;background:linear-gradient(135deg,#1a2a5e,#553c9a)">${init}</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:900;color:#fff">${c.prenom?c.prenom+' ':''}${c.nom}</div>
+        <div style="font-size:12px;color:#718096;margin-top:3px">${[c.club,c.niveauEstime].filter(Boolean).join(' · ')||'—'}</div>
+        <div style="margin-top:5px">
+          ${c.posGroup?`<span class="badge b-${c.posGroup}">${c.posGroup}</span>`:''}
+          ${c.position?`<span style="font-size:11px;color:#718096;margin-left:6px">${c.position.split('-').slice(1).join(' ')}</span>`:''}
+          ${c.statut==='archived'?'<span class="badge" style="background:rgba(113,128,150,.15);color:#718096;border:1px solid #2d4a7a;margin-left:4px">Archivé</span>':''}
+        </div>
+      </div>
+      ${lastAvg?`<div style="text-align:center"><div style="font-size:36px;font-weight:900;color:#a78bfa;line-height:1">${lastAvg}</div><div style="font-size:9px;color:#718096;letter-spacing:1px;text-transform:uppercase">Score</div></div>`:''}
+    </div>
+    ${c.contact?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;background:#0e1a2e;border:1px solid #2d4a7a;border-radius:8px;padding:10px">
+      <span style="font-size:10px;color:#63b3ed;text-transform:uppercase;letter-spacing:1px;flex-shrink:0">Contact</span>
+      <span style="font-size:13px;color:#e2e8f0">${c.contact}</span>
+    </div>`:''}
+    ${c.notes?`<div style="background:#0e1a2e;border-radius:8px;padding:10px;font-size:12px;color:#718096;font-style:italic;margin-bottom:12px">"${c.notes}"</div>`:''}
+    ${r?`<div style="background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.2);border-radius:8px;padding:10px;margin-bottom:12px">
+      <div style="font-size:10px;color:#63b3ed;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">🔍 Recherche liée</div>
+      <div style="font-size:13px;font-weight:700;color:#e2e8f0">${r.titre}</div>
+      ${r.manquement?`<div style="font-size:11px;color:#718096;margin-top:2px">${r.manquement}</div>`:''}
+    </div>`:''}
+    <div class="section" style="margin-bottom:12px"><div class="section-title">📋 Observations (${obs.length})</div>
+      ${obs.length?obs.map(o=>{
+        const avg=((o.t+o.ta+o.p+o.m)/4).toFixed(1);
+        return`<div style="padding:10px 0;border-bottom:1px solid rgba(45,74,122,.5)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
+            <span style="font-size:11px;color:#63b3ed;font-family:monospace">${o.date}</span>
+            ${o.context?`<span style="font-size:11px;color:#718096;font-style:italic">${o.context}</span>`:''}
+            <span style="margin-left:auto;font-size:18px;font-weight:900;color:#a78bfa">${avg}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px">
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#63b3ed">${o.t}</div><div style="font-size:9px;color:#4a6080">TECH</div></div>
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#63b3ed">${o.ta}</div><div style="font-size:9px;color:#4a6080">TACT</div></div>
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#68d391">${o.p}</div><div style="font-size:9px;color:#4a6080">PHYS</div></div>
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#f6c90e">${o.m}</div><div style="font-size:9px;color:#4a6080">MENT</div></div>
+          </div>
+          ${o.note?`<div style="font-size:12px;color:#718096;font-style:italic">"${o.note}"</div>`:''}
+          <div style="font-size:10px;color:#4a6080;margin-top:4px">Par ${o.by||'—'}</div>
+        </div>`;
+      }).join(''):`<div style="color:#718096;font-size:13px;padding:6px 0">Aucune observation — cliquez &quot;+ Observation&quot; pour commencer le suivi.</div>`}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-d btn-sm" onclick="deleteCiblePermanent('${c.id}')">🗑</button>
+      <button class="btn btn-o btn-sm" onclick="archiveCible('${c.id}')">${c.statut==='archived'?'📤 Restaurer':'📦 Archiver'}</button>
+      <button class="btn btn-o" onclick="closeModal('modal-detail');setTimeout(()=>openObsModal('${c.id}'),60)">+ Observation</button>
+      <button class="btn btn-p" style="flex:1" onclick="openCibleModal('${c.id}');closeModal('modal-detail')">✏️ Modifier</button>
+    </div>
+  `;
+  openModal('modal-detail');
+}
+
+function openRechercheModal(id){
+  const r=id?recherches.find(x=>x.id===id):null;
+  document.getElementById('rech-edit-id').value=id||'';
+  document.getElementById('rech-title').textContent=r?'Modifier la Recherche':'Nouvelle Recherche';
+  document.getElementById('rech-titre').value=r?.titre||'';
+  document.getElementById('rech-poste').value=r?.poste||'';
+  document.getElementById('rech-manq').value=r?.manquement||'';
+  document.getElementById('rech-statut').value=r?.statut||'ouverte';
+  openModal('modal-rech');
+}
+
+async function saveRecherche(){
+  const titre=document.getElementById('rech-titre').value.trim();
+  if(!titre){toast('⚠ Le titre est obligatoire');return;}
+  const eid=document.getElementById('rech-edit-id').value;
+  const r={
+    id:eid||'rech_'+Date.now(),titre,
+    poste:document.getElementById('rech-poste').value,
+    manquement:document.getElementById('rech-manq').value.trim(),
+    statut:document.getElementById('rech-statut').value,
+    createdAt:eid?recherches.find(x=>x.id===eid)?.createdAt||new Date().toISOString():new Date().toISOString(),
+    updatedAt:new Date().toISOString(),by:CU.name
+  };
+  if(eid){const i=recherches.findIndex(x=>x.id===eid);if(i>=0)recherches[i]=r;}else recherches.push(r);
+  addAct(eid?'a modifié':'a créé la recherche',titre);
+  const ok=await pushCloud();closeModal('modal-rech');renderRecrutement();
+  toast(ok?`✓ "${titre}" sauvegardé`:'✓ Sauvegardé localement');
+}
+
+async function deleteRecherche(id){
+  const r=recherches.find(x=>x.id===id);
+  if(!confirm(`Supprimer la recherche "${r?.titre}" ? Les cibles liées ne seront pas supprimées.`))return;
+  recherches=recherches.filter(x=>x.id!==id);
+  cibles.filter(c=>c.rechercheId===id).forEach(c=>{c.rechercheId=null;c.updatedAt=new Date().toISOString();});
+  await pushCloud();renderRecrutement();toast('Recherche supprimée');
+}
+
+async function updateRechercheStatut(id,statut){
+  const r=recherches.find(x=>x.id===id);if(!r)return;
+  r.statut=statut;r.updatedAt=new Date().toISOString();
+  await pushCloud();renderRecrutement();
+}
+
+function comparerCibles(rechercheId){
+  const linked=cibles.filter(c=>c.rechercheId===rechercheId&&c.statut!=='archived');
+  if(linked.length<2){toast('⚠ Minimum 2 cibles pour comparer');return;}
+  const r=recherches.find(x=>x.id===rechercheId);
+  const getObs=c=>[...c.observations].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const rows=[
+    {label:'Club',vals:linked.map(c=>c.club||'—')},
+    {label:'Niveau estimé',vals:linked.map(c=>c.niveauEstime||'—')},
+    {label:'Observations',vals:linked.map(c=>c.observations.length.toString())},
+  ];
+  const hasObs=linked.some(c=>c.observations.length>0);
+  if(hasObs){
+    ['Technique','Tactique','Physique','Mental'].forEach((lb,i)=>{
+      const keys=['t','ta','p','m'];
+      rows.push({label:lb,vals:linked.map(c=>{const o=getObs(c);return o?o[keys[i]].toString():'—';})});
+    });
+    rows.push({label:'Moyenne',vals:linked.map(c=>{const o=getObs(c);return o?((o.t+o.ta+o.p+o.m)/4).toFixed(1):'—';})});
+  }
+  document.getElementById('detail-content').innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:20px;font-weight:900;color:#a78bfa;margin-bottom:4px">⚖️ Comparaison de Cibles</div>
+      <div style="font-size:12px;color:#718096">Recherche : ${r?.titre||'—'}</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Critère</th>${linked.map(c=>`<th style="color:#a78bfa">${c.prenom?c.prenom+' ':''}${c.nom}</th>`).join('')}</tr></thead>
+      <tbody>
+        <tr><td>Poste</td>${linked.map(c=>`<td>${c.posGroup?`<span class="badge b-${c.posGroup}">${c.posGroup}</span>`:'—'}</td>`).join('')}</tr>
+        ${rows.map(row=>{
+          const nums=row.vals.map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+          const max=nums.length?Math.max(...nums):null,min=nums.length?Math.min(...nums):null;
+          return`<tr><td>${row.label}</td>${row.vals.map(v=>{const n=parseFloat(v);const ok=!isNaN(n);
+            return`<td class="${ok&&max!==null&&n===max&&max!==min?'comp-hi':ok&&min!==null&&n===min&&max!==min?'comp-lo':''}" style="font-size:16px">${v}</td>`;
+          }).join('')}</tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+    <div style="font-size:11px;color:#718096;margin-top:8px"><span style="color:#68d391">■</span> Meilleure valeur &nbsp;<span style="color:#fc8181">■</span> Plus basse valeur</div>
+    <div class="btn-row"><button class="btn btn-o" onclick="closeModal('modal-detail')">Fermer</button></div>
+  `;
+  openModal('modal-detail');
 }
 
 // ═══════════════════════════════════════
