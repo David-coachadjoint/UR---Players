@@ -317,6 +317,7 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     <button class="nav-tab" onclick="showPage('p-recrutement',this);renderRecrutement()">🎯 Recrutement</button>
     <button class="nav-tab" onclick="showPage('p-matchs',this);renderMatchs()">⚽ Matchs</button>
     <button class="nav-tab" onclick="showPage('p-data',this);renderData()">📊 Data</button>
+    <button class="nav-tab" onclick="showPage('p-notes',this);renderNotes()">📝 Notes Staff</button>
     <button class="nav-tab" onclick="showPage('p-admin',this);renderAdmin()" id="tab-admin" style="display:none">🛡 Admin</button>
   </div>
 
@@ -423,6 +424,33 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
       <div id="compo-optimale-content"><div class="empty"><p>Enregistrez des matchs pour générer une recommandation.</p></div></div>
     </div>
     <div id="matchs-list"></div>
+  </div>
+
+  <!-- NOTES STAFF -->
+  <div class="page" id="p-notes">
+    <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:16px">📝 <span style="color:#63b3ed">Notes Staff</span> <span style="font-size:13px;font-weight:400;color:#718096">· Visibles uniquement par le staff connecté</span></div>
+    <div class="section">
+      <div class="section-title">✍️ Nouvelle note</div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Catégorie</label>
+          <select class="fs" id="note-cat">
+            <option value="général">📌 Général</option>
+            <option value="tactique">♟ Tactique</option>
+            <option value="médical">🏥 Médical</option>
+            <option value="recrutement">🎯 Recrutement</option>
+            <option value="administratif">📋 Administratif</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Joueur concerné (optionnel)</label>
+          <select class="fs" id="note-player"><option value="">— Aucun —</option></select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Note *</label>
+        <textarea class="fi" id="note-content" rows="3" placeholder="Rédigez votre note…"></textarea>
+      </div>
+      <button class="btn btn-p" onclick="saveNote()">💾 Publier la note</button>
+    </div>
+    <div id="notes-list"></div>
   </div>
 
   <!-- DATA -->
@@ -979,7 +1007,7 @@ const TOUTES_COMPS=[
 // ═══════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════
-let players=[],evals=[],plans=[],cibles=[],recherches=[],matchs=[],acts=[],staffList=[],requests=[];
+let players=[],evals=[],plans=[],cibles=[],recherches=[],matchs=[],notes=[],acts=[],staffList=[],requests=[];
 let CU=null,editId=null,posFilter='';
 let CFG={bin:'',key:''};
 const KS='ur6_sess',KD='ur6_data',KC='ur6_cfg';
@@ -1044,7 +1072,7 @@ async function syncCloud(){
     const d=await r.json();
     const prev=JSON.stringify(players);
     if(d.players)players=d.players;if(d.evaluations)evals=d.evaluations;
-    if(d.plans)plans=d.plans;if(d.cibles)cibles=d.cibles;if(d.recherches)recherches=d.recherches;if(d.matchs)matchs=d.matchs;if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
+    if(d.plans)plans=d.plans;if(d.cibles)cibles=d.cibles;if(d.recherches)recherches=d.recherches;if(d.matchs)matchs=d.matchs;if(d.notes)notes=d.notes;if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
     saveLocal();setSyncOk();
     if(JSON.stringify(players)!==prev){renderDashboard();renderPlayers();initSelects();}
     if(CU?.isAdmin&&requests.filter(r=>r.status==='pending').length>0)document.getElementById('notif-dot').classList.add('show');
@@ -1054,7 +1082,7 @@ async function pushCloud(){
   if(!CFG.bin||!CFG.key){saveLocal();return false;}
   setSyncBusy();
   try{
-    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,plans,cibles,recherches,matchs,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
+    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,plans,cibles,recherches,matchs,notes,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
     saveLocal();setSyncOk();return true;
   }catch(e){setSyncErr();saveLocal();return false;}
 }
@@ -1071,15 +1099,15 @@ async function saveCfg(){
     if(!r.ok)throw new Error();
     const d=await r.json();
     if(!d.players||!d.players.length)await pushCloud();
-    else{players=d.players||[];evals=d.evaluations||[];plans=d.plans||[];cibles=d.cibles||[];recherches=d.recherches||[];matchs=d.matchs||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
+    else{players=d.players||[];evals=d.evaluations||[];plans=d.plans||[];cibles=d.cibles||[];recherches=d.recherches||[];matchs=d.matchs||[];notes=d.notes||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
     box.innerHTML='<div class="cfg-status cfg-ok">✅ Connexion réussie ! Sauvegarde permanente active.</div>';
     renderDashboard();renderPlayers();initSelects();toast('✓ JSONBin connecté !');
   }catch(e){box.innerHTML='<div class="cfg-status cfg-err">❌ Erreur — vérifiez BIN ID et Master Key</div>';}
 }
 
 // LOCAL STORAGE
-function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,plans,cibles,recherches,matchs,acts,staffList,requests,ts:Date.now()}));}
-function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];plans=o.plans||[];cibles=o.cibles||[];recherches=o.recherches||[];matchs=o.matchs||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
+function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,plans,cibles,recherches,matchs,notes,acts,staffList,requests,ts:Date.now()}));}
+function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];plans=o.plans||[];cibles=o.cibles||[];recherches=o.recherches||[];matchs=o.matchs||[];notes=o.notes||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
 
 // ═══════════════════════════════════════
 //  SCORING
@@ -2667,6 +2695,7 @@ function openMatchDetail(id){
     ${m.notes?`<div class="section"><div class="section-title">📝 Notes</div><div style="font-size:13px;color:#e2e8f0;line-height:1.6">${m.notes}</div></div>`:''}
     <div class="btn-row">
       <button class="btn btn-o" onclick="closeModal('modal-detail')">Fermer</button>
+      <button class="btn btn-o btn-sm" onclick="printMatchReport('${m.id}')">📄 PDF</button>
       <button class="btn btn-p" onclick="closeModal('modal-detail');openMatchModal('${m.id}')">✏️ Modifier</button>
     </div>
   `;
@@ -2706,6 +2735,153 @@ function renderCompoOptimale(){
     </div>`;
   }).join('');
   el.innerHTML=`<div style="font-size:12px;color:#718096;margin-bottom:14px">Score composite = OVR (40%) + Présence match (40%) + Progression (20%) · ${matchs.length} match${matchs.length>1?'s':''} analysé${matchs.length>1?'s':''}</div>${sections}`;
+}
+
+// ═══════════════════════════════════════
+//  NOTES STAFF
+// ═══════════════════════════════════════
+
+const CAT_NOTES={
+  général:{label:'📌 Général',color:'#63b3ed'},
+  tactique:{label:'♟ Tactique',color:'#68d391'},
+  médical:{label:'🏥 Médical',color:'#fc8181'},
+  recrutement:{label:'🎯 Recrutement',color:'#a78bfa'},
+  administratif:{label:'📋 Administratif',color:'#f6c90e'}
+};
+
+function renderNotes(){
+  // Populate player select
+  const sel=document.getElementById('note-player');
+  if(sel){
+    sel.innerHTML='<option value="">— Aucun —</option>'+
+      [...players].sort((a,b)=>(a.nom||'').localeCompare(b.nom||'')).map(p=>
+        `<option value="${p.id}">${p.prenom?p.prenom+' ':''}${p.nom}</option>`).join('');
+  }
+  const el=document.getElementById('notes-list');if(!el)return;
+  if(!notes.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">📝</div><h3>Aucune note</h3><p>Soyez le premier à publier une note.</p></div>';
+    return;
+  }
+  const sorted=[...notes].sort((a,b)=>b.ts.localeCompare(a.ts));
+  el.innerHTML=sorted.map(n=>{
+    const cat=CAT_NOTES[n.category]||CAT_NOTES.général;
+    const player=n.pid?players.find(x=>x.id===n.pid):null;
+    const canDelete=CU?.isAdmin||CU?.name===n.by;
+    const dt=new Date(n.ts).toLocaleString('fr-BE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return`<div class="section" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="background:rgba(99,179,237,.1);border:1px solid ${cat.color};color:${cat.color};padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700">${cat.label}</span>
+        ${player?`<span style="font-size:12px;color:#a78bfa">👤 ${player.prenom?player.prenom+' ':''}${player.nom}</span>`:''}
+        <span style="font-size:11px;color:#718096;margin-left:auto">${n.by} · ${n.role||''} · ${dt}</span>
+        ${canDelete?`<button class="btn btn-d btn-sm" onclick="deleteNote('${n.id}')">🗑</button>`:''}
+      </div>
+      <div style="font-size:14px;color:#e2e8f0;line-height:1.7;white-space:pre-wrap">${n.content}</div>
+    </div>`;
+  }).join('');
+}
+
+async function saveNote(){
+  const content=document.getElementById('note-content').value.trim();
+  if(!content){toast('Rédigez votre note');return;}
+  const n={
+    id:'n_'+Date.now(),
+    content,
+    category:document.getElementById('note-cat').value,
+    pid:document.getElementById('note-player').value||null,
+    by:CU?.name||'?',
+    role:CU?.role||'',
+    ts:new Date().toISOString()
+  };
+  notes.unshift(n);
+  await pushCloud();
+  document.getElementById('note-content').value='';
+  renderNotes();toast('✓ Note publiée');
+}
+
+async function deleteNote(id){
+  if(!confirm('Supprimer cette note ?'))return;
+  notes=notes.filter(n=>n.id!==id);
+  await pushCloud();renderNotes();toast('Note supprimée');
+}
+
+// ═══════════════════════════════════════
+//  EXPORT PDF MATCH
+// ═══════════════════════════════════════
+
+function printMatchReport(mid){
+  const m=matchs.find(x=>x.id===mid);if(!m)return;
+  const[bg,ba]=m.score.split('-').map(Number);
+  const res=bg>ba?'Victoire':bg===ba?'Nul':'Défaite';
+  const resColor=bg>ba?'#16a34a':bg===ba?'#d97706':'#dc2626';
+  const typeLabel={championnat:'🏆 Championnat',coupe:'🏅 Coupe',amical:'🤝 Amical'}[m.competition_type]||'';
+  const terrainLabel={herbe:'🌿 Herbe naturelle',synthétique:'🔵 Synthétique',hybride:'🔀 Hybride'}[m.terrain]||'';
+  const meteoLabel={beau:'☀️ Beau temps',nuageux:'⛅ Nuageux',pluie:'🌧 Pluie',vent:'💨 Vent fort',froid:'🥶 Grand froid',neige:'❄️ Neige'}[m.meteo]||'';
+  const titRows=(m.titulaires||[]).map(pid=>{
+    const p=players.find(x=>x.id===pid);if(!p)return'';
+    const pos=p.position?p.position.split('-')[0]:'';
+    const posLabel=p.position?p.position.split('-').slice(1).join(' '):'—';
+    const ovrV=ovr(p);
+    const pond=Math.round(pondMatch(m,pid)*100);
+    return`<tr><td>${pos}</td><td><strong>${p.prenom?p.prenom+' ':''}${p.nom}</strong></td><td>${posLabel}</td><td style="text-align:center">${ovrV}</td><td style="text-align:center">${pond}%</td></tr>`;
+  }).join('');
+  const chgRows=(m.changements||[]).map(ch=>{
+    const pOut=players.find(x=>x.id===ch.sortant),pIn=players.find(x=>x.id===ch.entrant);
+    const imp=ch.impact==='oui'?'✓ Oui':ch.impact==='non'?'✗ Non':'—';
+    return`<tr><td style="text-align:center">${ch.minute}'</td><td style="color:#dc2626">↓ ${pOut?pOut.nom:'?'}</td><td style="color:#16a34a">↑ ${pIn?pIn.nom:'?'}</td><td style="text-align:center;font-weight:700;color:${ch.impact==='oui'?'#16a34a':ch.impact==='non'?'#dc2626':'#999'}">${imp}</td></tr>`;
+  }).join('');
+  const buteursRows=(m.buteurs||[]).map(b=>{
+    const p=players.find(x=>x.id===b.pid);
+    return`<tr><td style="text-align:center">${b.minute}'</td><td>⚽ ${p?`${p.prenom?p.prenom+' ':''}${p.nom}`:'?'}</td></tr>`;
+  }).join('');
+  const assistRows=(m.assists||[]).map(a=>{
+    const p=players.find(x=>x.id===a.pid);
+    return`<tr><td style="text-align:center">${a.minute}'</td><td>🎯 ${p?`${p.prenom?p.prenom+' ':''}${p.nom}`:'?'}</td></tr>`;
+  }).join('');
+  const groups={GK:[],DEF:[],MIL:[],ATT:[]};
+  (m.titulaires||[]).forEach(pid=>{const p=players.find(x=>x.id===pid);if(!p)return;const pos=p.position?p.position.split('-')[0]:'MIL';if(groups[pos])groups[pos].push(pondMatch(m,pid));});
+  const pondRows=Object.entries(groups).filter(([,v])=>v.length).map(([pos,vals])=>{
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const pct=Math.round(avg*100);
+    return`<tr><td>${pos}</td><td style="text-align:center">${vals.length} joueur${vals.length>1?'s':''}</td><td style="text-align:center;font-weight:700;color:${pct>=80?'#16a34a':pct>=60?'#2563eb':'#d97706'}">${pct}%</td></tr>`;
+  }).join('');
+  const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Match vs ${m.adversaire}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;padding:28px;max-width:850px;margin:0 auto;font-size:13px}
+.hdr{background:linear-gradient(135deg,#0A1628,#1B3A6B);color:#fff;padding:24px;border-radius:10px;margin-bottom:18px}.hdr h1{font-size:22px;font-weight:900;letter-spacing:2px}.hdr p{font-size:12px;opacity:.7;margin-top:4px}
+.score-box{text-align:center;padding:18px 0}.score-main{font-size:52px;font-weight:900;letter-spacing:4px}.score-res{font-size:18px;font-weight:700;margin-top:4px}
+.sec{background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:16px;margin-bottom:12px}.sec h3{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#1B3A6B;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #e2e8f0}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.info-item{background:#f1f5f9;border-radius:6px;padding:9px 12px}.info-item .lbl{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.7px}.info-item .val{font-size:14px;font-weight:700;color:#1a2d4e;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:12px}th{padding:7px 10px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748b;border-bottom:1px solid #e2e8f0;text-align:left}td{padding:7px 10px;border-bottom:1px solid #f1f5f9}tr:last-child td{border:none}
+.ft{text-align:center;font-size:11px;color:#94a3b8;margin-top:18px;padding-top:12px;border-top:1px solid #e2e8f0}
+@media print{body{background:#fff;padding:0}@page{margin:20px}}</style></head><body>
+<div class="hdr"><h1>🏟 UNION ROCHEFORTOISE</h1><p>Rapport de match · ${new Date().toLocaleDateString('fr-BE')} · Généré par ${CU?.name||'?'} · ${CU?.role||''}</p></div>
+<div class="sec">
+  <div class="score-box">
+    <div style="font-size:14px;font-weight:700;color:#1B3A6B;margin-bottom:6px">UR vs ${m.adversaire}</div>
+    <div class="score-main" style="color:${resColor}">${m.score}</div>
+    <div class="score-res" style="color:${resColor}">${res}</div>
+  </div>
+  <div class="info-grid">
+    <div class="info-item"><div class="lbl">Date</div><div class="val">${m.date||'—'}</div></div>
+    <div class="info-item"><div class="lbl">Lieu</div><div class="val">${m.lieu==='ext'?'Extérieur':'Domicile'}</div></div>
+    <div class="info-item"><div class="lbl">Type</div><div class="val">${typeLabel}</div></div>
+    <div class="info-item"><div class="lbl">Compétition</div><div class="val">${m.competition||'—'}</div></div>
+    ${m.formation?`<div class="info-item"><div class="lbl">Notre formation</div><div class="val">${m.formation}</div></div>`:''}
+    ${m.formation_adv?`<div class="info-item"><div class="lbl">Formation adverse</div><div class="val">${m.formation_adv}</div></div>`:''}
+    ${m.terrain?`<div class="info-item"><div class="lbl">Terrain</div><div class="val">${terrainLabel}</div></div>`:''}
+    ${m.meteo?`<div class="info-item"><div class="lbl">Météo</div><div class="val">${meteoLabel}</div></div>`:''}
+  </div>
+</div>
+${titRows?`<div class="sec"><h3>👥 Composition de départ</h3><table><thead><tr><th>Pos.</th><th>Joueur</th><th>Poste</th><th style="text-align:center">OVR</th><th style="text-align:center">% Présence</th></tr></thead><tbody>${titRows}</tbody></table></div>`:''}
+${pondRows?`<div class="sec"><h3>📊 Pondération par groupe</h3><table><thead><tr><th>Groupe</th><th style="text-align:center">Effectif</th><th style="text-align:center">Présence moy.</th></tr></thead><tbody>${pondRows}</tbody></table></div>`:''}
+${buteursRows?`<div class="sec"><h3>⚽ Buts marqués</h3><table><thead><tr><th style="text-align:center">Min.</th><th>Joueur</th></tr></thead><tbody>${buteursRows}</tbody></table></div>`:''}
+${assistRows?`<div class="sec"><h3>🎯 Passes décisives</h3><table><thead><tr><th style="text-align:center">Min.</th><th>Joueur</th></tr></thead><tbody>${assistRows}</tbody></table></div>`:''}
+${chgRows?`<div class="sec"><h3>🔄 Changements</h3><table><thead><tr><th style="text-align:center">Min.</th><th>Sortant</th><th>Entrant</th><th style="text-align:center">Impact</th></tr></thead><tbody>${chgRows}</tbody></table></div>`:''}
+${m.notes?`<div class="sec"><h3>📝 Notes de match</h3><p style="line-height:1.7;font-size:13px">${m.notes}</p></div>`:''}
+<div class="ft">Rapport généré le ${new Date().toLocaleDateString('fr-BE')} à ${new Date().toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'})} par ${CU?.name||'?'} · ${CU?.role||''} · Union Rochefortoise · Scout DB</div>
+<script>window.onload=()=>window.print();<\/script></body></html>`;
+  const win=window.open('','_blank');
+  if(win){win.document.write(html);win.document.close();}
+  else toast('⚠ Autorisez les popups pour générer le PDF');
 }
 
 // ═══════════════════════════════════════
