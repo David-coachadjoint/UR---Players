@@ -203,6 +203,34 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
 .empty-ico{font-size:36px;margin-bottom:10px}
 .empty h3{font-size:18px;color:#e2e8f0;margin-bottom:6px}
 
+/* PROGRESSION */
+.prog-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.prog-row::-webkit-scrollbar{display:none}
+.prog-item{min-width:80px;background:#0e1a2e;border:1px solid #2d4a7a;border-radius:8px;padding:9px 7px;text-align:center;flex-shrink:0}
+.prog-item.latest{border-color:#63b3ed;background:rgba(99,179,237,.08)}
+.plan-box{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:14px;margin-bottom:12px}
+.plan-skill{display:inline-block;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:#a78bfa;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin:2px 2px 2px 0}
+
+/* RECRUTEMENT */
+.rech-card{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:12px;padding:16px;margin-bottom:12px}
+.rech-card.conclue{border-color:rgba(104,211,145,.3);opacity:.85}
+
+/* MATCHS */
+.match-card{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+.match-card:hover{border-color:#63b3ed;transform:translateY(-2px)}
+.match-score{font-size:32px;font-weight:900;color:#fff;letter-spacing:2px;text-align:center;margin:6px 0}
+.match-score.win{color:#68d391}.match-score.draw{color:#f6c90e}.match-score.loss{color:#fc8181}
+.pond-bar{height:8px;border-radius:4px;margin:3px 0;position:relative;overflow:hidden;background:rgba(255,255,255,.07)}
+.pond-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.compo-pitch{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;background:rgba(14,26,46,.7);border-radius:10px;border:1px solid #2d4a7a;margin-bottom:12px}
+.compo-slot{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:8px;padding:8px 4px;text-align:center;font-size:11px}
+.compo-slot.titulaire{border-color:#68d391}.compo-slot.remplacant{border-color:#ed8936;opacity:.8}
+.reco-card{background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.2);border-radius:10px;padding:14px;margin-bottom:10px}
+.reco-score{font-size:22px;font-weight:900;color:#63b3ed}
+.timeline-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(45,74,122,.4)}
+.timeline-item:last-child{border:none}
+.timeline-min{min-width:36px;text-align:center;font-size:11px;font-weight:700;color:#f6c90e;padding-top:2px}
+
 /* RESPONSIVE */
 @media(max-width:640px){
   .form-row,.form-row-3{grid-template-columns:1fr}
@@ -276,6 +304,8 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     <button class="nav-tab" onclick="showPage('p-adn',this);renderADN()">🧬 ADN Équipe</button>
     <button class="nav-tab" onclick="showPage('p-compare',this);renderCompare()">⚖️ Comparatif</button>
     <button class="nav-tab" onclick="showPage('p-eval',this);initEval()">📅 Évaluations</button>
+    <button class="nav-tab" onclick="showPage('p-recrutement',this);renderRecrutement()">🎯 Recrutement</button>
+    <button class="nav-tab" onclick="showPage('p-matchs',this);renderMatchs()">⚽ Matchs</button>
     <button class="nav-tab" onclick="showPage('p-admin',this);renderAdmin()" id="tab-admin" style="display:none">🛡 Admin</button>
   </div>
 
@@ -347,7 +377,41 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
       <div class="fg"><label class="fl">Observations</label><textarea class="fi" id="ev-note" rows="2" placeholder="Notes…"></textarea></div>
       <button class="btn btn-p btn-full" onclick="saveEval()">💾 Enregistrer & Synchroniser</button>
     </div>
+    <div class="section"><div class="section-title">⚠️ Alertes de Régression</div><div id="eval-alerts"><div style="color:#718096;font-size:13px">Enregistrez des évaluations pour détecter les régressions.</div></div></div>
+
+    <div class="section"><div class="section-title">📈 Progression par Joueur</div>
+      <div class="fg"><label class="fl">Joueur</label><select class="fs" id="prog-player" onchange="renderEvalProg()"><option value="">Sélectionner…</option></select></div>
+      <div id="eval-prog-content"><div style="color:#718096;font-size:13px">Sélectionnez un joueur pour voir sa progression.</div></div>
+    </div>
+
     <div class="section"><div class="section-title">📜 Historique</div><div id="eval-hist"></div></div>
+  </div>
+
+  <!-- RECRUTEMENT -->
+  <div class="page" id="p-recrutement">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:22px;font-weight:900;color:#fff">Base <span style="color:#63b3ed">Recrutement</span><div style="font-size:12px;color:#718096;font-weight:400" id="recr-count">—</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o" onclick="openRechercheModal()">+ Recherche</button>
+        <button class="btn btn-p" onclick="openCibleModal()">+ Cible</button>
+      </div>
+    </div>
+    <div class="stats-row" id="recr-stats"></div>
+    <div id="recrutement-content"></div>
+  </div>
+
+  <!-- MATCHS -->
+  <div class="page" id="p-matchs">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:22px;font-weight:900;color:#fff">Matchs &amp; <span style="color:#63b3ed">Performances</span><div style="font-size:12px;color:#718096;font-weight:400" id="matchs-count">—</div></div>
+      <button class="btn btn-p" onclick="openMatchModal()">+ Nouveau match</button>
+    </div>
+    <div class="stats-row" id="matchs-stats"></div>
+    <div class="section">
+      <div class="section-title">🏅 Composition optimale recommandée</div>
+      <div id="compo-optimale-content"><div class="empty"><p>Enregistrez des matchs pour générer une recommandation.</p></div></div>
+    </div>
+    <div id="matchs-list"></div>
   </div>
 
   <!-- ADMIN -->
@@ -519,6 +583,152 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
   </div>
 </div>
 
+<!-- MODAL CIBLE -->
+<div class="overlay" id="modal-cible" onclick="closeModalOut(event,'modal-cible')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-cible')">✕</button>
+    <div class="modal-title" id="cib-title">Nouvelle Cible</div>
+    <div class="section"><div class="section-title">👤 Identité</div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Nom *</label><input type="text" class="fi" id="cib-nom"></div>
+        <div class="fg"><label class="fl">Prénom</label><input type="text" class="fi" id="cib-pre"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Club actuel</label><input type="text" class="fi" id="cib-club" placeholder="ex: RFC Liège"></div>
+        <div class="fg"><label class="fl">Niveau estimé</label><input type="text" class="fi" id="cib-niveau" placeholder="ex: National 2, Régional"></div>
+      </div>
+      <div class="fg"><label class="fl">Contact</label><input type="text" class="fi" id="cib-contact" placeholder="email, tél, agent…"></div>
+    </div>
+    <div class="section"><div class="section-title">⚽ Poste</div>
+      <select class="fs" id="cib-pos" style="width:100%">
+        <option value="">— Sélectionner —</option>
+        <optgroup label="Gardiens"><option value="GK-Gardien moderne">Gardien moderne</option><option value="GK-Gardien fixe">Gardien fixe</option></optgroup>
+        <optgroup label="Défenseurs"><option value="DEF-Défenseur central">Défenseur central</option><option value="DEF-DC Relanceur">DC - Relanceur</option><option value="DEF-Latéral moderne">Arrière-latéral moderne</option><option value="DEF-Latéral offensif">Latéral offensif</option><option value="DEF-Latéral strict">Défenseur latéral strict</option></optgroup>
+        <optgroup label="Milieux"><option value="MIL-Milieu défensif">Milieu défensif</option><option value="MIL-Récupérateur">Milieu récupérateur</option><option value="MIL-Sentinelle">Milieu sentinelle</option><option value="MIL-Axial">Milieu axial</option><option value="MIL-Meneur retrait">Meneur de jeu en retrait</option><option value="MIL-Meneur avancé">Meneur de jeu avancé</option><option value="MIL-Complet">Milieu complet</option></optgroup>
+        <optgroup label="Attaquants"><option value="ATT-Pivot">Pivot</option><option value="ATT-16m">Joueur des 16m</option><option value="ATT-Retrait">Attaquant en retrait</option><option value="ATT-Excentré">Attaquant excentré</option><option value="ATT-Complet">Attaquant complet</option><option value="ATT-Profondeur">Attaquant de profondeur</option></optgroup>
+      </select>
+    </div>
+    <div class="section"><div class="section-title">🔍 Lier à une Recherche</div>
+      <select class="fs" id="cib-rech" style="width:100%"><option value="">— Aucune —</option></select>
+    </div>
+    <div class="section"><div class="section-title">📝 Notes générales</div>
+      <textarea class="fi" id="cib-notes" rows="3" placeholder="Informations contextuelles, impression générale…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-cible')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveCible()">💾 Enregistrer</button>
+    </div>
+    <input type="hidden" id="cib-edit-id">
+  </div>
+</div>
+
+<!-- MODAL OBSERVATION -->
+<div class="overlay" id="modal-obs" onclick="closeModalOut(event,'modal-obs')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-obs')">✕</button>
+    <div class="modal-title">📋 Observation — <span id="obs-cible-name" style="font-size:16px;color:#63b3ed">—</span></div>
+    <div class="section">
+      <div class="form-row">
+        <div class="fg"><label class="fl">Mois</label><input type="month" class="fi" id="obs-date"></div>
+        <div class="fg"><label class="fl">Contexte</label><input type="text" class="fi" id="obs-context" placeholder="Match, vidéo, entraînement…"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Technique — <span id="obs-vt" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-t" oninput="document.getElementById('obs-vt').textContent=this.value"></div>
+        <div class="fg"><label class="fl">Tactique — <span id="obs-vta" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-ta" oninput="document.getElementById('obs-vta').textContent=this.value"></div>
+        <div class="fg"><label class="fl">Physique — <span id="obs-vp" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-p" oninput="document.getElementById('obs-vp').textContent=this.value"></div>
+        <div class="fg"><label class="fl">Mental — <span id="obs-vm" style="color:#63b3ed">5</span>/10</label><input type="range" min="1" max="10" value="5" id="obs-m" oninput="document.getElementById('obs-vm').textContent=this.value"></div>
+      </div>
+      <div class="fg"><label class="fl">Notes d'observation</label><textarea class="fi" id="obs-note" rows="3" placeholder="Points forts observés, comportement, impression générale…"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-obs')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveObs()">💾 Sauvegarder l'observation</button>
+    </div>
+    <input type="hidden" id="obs-cible-id">
+  </div>
+</div>
+
+<!-- MODAL RECHERCHE -->
+<div class="overlay" id="modal-rech" onclick="closeModalOut(event,'modal-rech')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-rech')">✕</button>
+    <div class="modal-title" id="rech-title">Nouvelle Recherche</div>
+    <div class="section">
+      <div class="fg"><label class="fl">Titre *</label><input type="text" class="fi" id="rech-titre" placeholder="ex: Défenseur central relanceur"></div>
+      <div class="fg"><label class="fl">Poste prioritaire</label>
+        <select class="fs" id="rech-poste" style="width:100%"><option value="">—</option><option value="GK">Gardien</option><option value="DEF">Défenseur</option><option value="MIL">Milieu</option><option value="ATT">Attaquant</option></select>
+      </div>
+      <div class="fg"><label class="fl">Manquement identifié</label><textarea class="fi" id="rech-manq" rows="2" placeholder="Décrivez le besoin dans le noyau…"></textarea></div>
+      <div class="fg"><label class="fl">Statut</label>
+        <select class="fs" id="rech-statut" style="width:100%"><option value="ouverte">🟡 Ouverte</option><option value="en_cours">🔵 En cours</option><option value="conclue">🟢 Conclue</option></select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-rech')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveRecherche()">💾 Enregistrer</button>
+    </div>
+    <input type="hidden" id="rech-edit-id">
+  </div>
+</div>
+
+<!-- MODAL MATCH -->
+<div class="overlay" id="modal-match" onclick="closeModalOut(event,'modal-match')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-match')">✕</button>
+    <div class="modal-title" id="match-modal-title">Nouveau Match</div>
+    <div class="section"><div class="section-title">📋 Informations</div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="m-date"></div>
+        <div class="fg"><label class="fl">Adversaire *</label><input type="text" class="fi" id="m-adv" placeholder="ex: RFC Liège"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Nos buts</label><input type="number" class="fi" id="m-bg" min="0" value="0"></div>
+        <div class="fg"><label class="fl">Buts adverses</label><input type="number" class="fi" id="m-ba" min="0" value="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Domicile / Extérieur</label><select class="fs" id="m-lieu"><option value="dom">Domicile</option><option value="ext">Extérieur</option></select></div>
+        <div class="fg"><label class="fl">Compétition</label><input type="text" class="fi" id="m-comp" placeholder="ex: National 1 ACFF, Coupe…"></div>
+      </div>
+    </div>
+    <div class="section"><div class="section-title">👥 Composition de départ (11 max)</div>
+      <div class="fg"><label class="fl">Sélectionner les titulaires</label>
+        <div id="m-titulaires-grid" style="display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding:4px"></div>
+      </div>
+    </div>
+    <div class="section"><div class="section-title">🔄 Changements</div>
+      <div id="m-changements-list"></div>
+      <button class="btn btn-o btn-sm" onclick="addChangement()">+ Ajouter un changement</button>
+    </div>
+    <div class="section"><div class="section-title">📝 Notes de match</div>
+      <textarea class="fi" id="m-notes" rows="2" placeholder="Observations tactiques, incidents…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-match')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveMatch()">💾 Enregistrer</button>
+    </div>
+    <input type="hidden" id="m-edit-id">
+  </div>
+</div>
+
+<!-- MODAL PLAN D'ACTION -->
+<div class="overlay" id="modal-plan" onclick="closeModalOut(event,'modal-plan')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-plan')">✕</button>
+    <div class="modal-title">📋 Plan d'action — <span id="plan-player-name" style="font-size:16px;color:#a78bfa">—</span></div>
+    <div class="section">
+      <div class="fg"><label class="fl">Compétences cibles</label><div class="comp-tags" id="plan-skills"></div></div>
+      <div class="fg"><label class="fl">Description / Objectifs</label><textarea class="fi" id="plan-desc" rows="2" placeholder="Axes de travail, contexte…"></textarea></div>
+      <div class="fg"><label class="fl">Échéance (mois)</label><input type="month" class="fi" id="plan-deadline"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-plan')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="savePlanAction()">💾 Sauvegarder le plan</button>
+    </div>
+    <input type="hidden" id="plan-pid">
+    <input type="hidden" id="plan-edit-id">
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════
 //  ADMIN PRINCIPAL
@@ -564,6 +774,78 @@ const SKM=[
   {id:'timing',lb:'Timing',sb:'Sens du moment juste'},
 ];
 const ALL_SK=[...SKT,...SKP,...SKM];
+
+// ═══════════════════════════════════════
+//  CHANTIER 2 — STYLE DE JEU & MANQUEMENTS
+// ═══════════════════════════════════════
+const STYLES_JEU=[
+  {id:'transition',label:'Transition rapide',emoji:'⚡',color:'#fc8181',
+   poids:{vitesse:3,explosivite:3,percussion:2,prise_risque:2,finition:1,mise_danger:1},
+   adn:['Attaque rapidement après récupération','Verticalité maximale','Exploite les déséquilibres adverses','Peu de touches — courses profondes'],
+   forces:['Très dangereuse sur pertes adverses','Efficace émotionnellement','Crée beaucoup d\'occasions en peu de possession'],
+   faiblesses:['Peut souffrir face à un bloc bas','Dépend des espaces libres'],
+   train:['Transitions défense→attaque (3v2, 4v3 avec finition)','Appels en profondeur et exploitation des espaces libérés','Pressing pour provoquer les erreurs et relancer vite']},
+  {id:'possession',label:'Possession / Domination',emoji:'🔄',color:'#63b3ed',
+   poids:{technique:3,distribution:3,precision:2,concentration:2,position:1},
+   adn:['Contrôle du ballon et du rythme','Domination territoriale','Fatigue l\'adversaire par circulation','Supériorités numériques construites'],
+   forces:['Contrôle total du match','Réduit les transitions adverses','Crée des décalages structurés'],
+   faiblesses:['Exposée sur les pertes de balle','Demande une grande qualité technique collective'],
+   train:['Rondos et possession courte sous pression (4v2, 5v2, 6v3)','Sorties de balle organisées et relances courtes','Pressing collectif et contre-pressing immédiat après perte']},
+  {id:'pressing',label:'Pressing intense',emoji:'🔥',color:'#ed8936',
+   poids:{rigueur:3,recuperation:3,endurance:3,attitude:2,explosivite:1},
+   adn:['Récupérer haut et vite','Étouffer l\'adversaire dès sa sortie de balle','Contre-pressing immédiat','Jouer avec intensité émotionnelle'],
+   forces:['Force des erreurs adverses','Récupérations en zone dangereuse','Domination énergétique du match'],
+   faiblesses:['Très exigeant physiquement','Risque dans la profondeur si pressing contourné'],
+   train:['Pressing organisé par zones et déclenchement collectif','Contre-pressing immédiat — règle des 5 secondes','Gestion de l\'intensité et récupération active entre exercices']},
+  {id:'positionnel',label:'Jeu positionnel',emoji:'♟',color:'#68d391',
+   poids:{intel_t:3,position:3,vision:2,decision:2,creativite:1},
+   adn:['Occupation rationnelle des espaces','Création d\'avantages positionnels','Jeu entre les lignes','Fixe puis déséquilibre'],
+   forces:['Désorganise les blocs adverses','Contrôle spatial du terrain','Création structurée et reproductible'],
+   faiblesses:['Complexe à enseigner et maintenir','Dépend fortement de l\'intelligence tactique collective'],
+   train:['Jeux de position avec lignes et zones définies','Exercices de fixation-déséquilibre et permutations','Automatismes entre lignes et lecture collective']},
+  {id:'direct',label:'Jeu direct / Physique',emoji:'💪',color:'#f6c90e',
+   poids:{force:3,robustesse:2,endurance:2,finition:2,recup_p:1},
+   adn:['Aller vite vers l\'avant','Longs ballons ciblés et seconds ballons','Centres rapides — duels aériens','Recherche rapide de la zone de vérité'],
+   forces:['Très difficile à gérer physiquement','Dangereuse sur les standards et les duels aériens'],
+   faiblesses:['Peut subir territorialement','Dépend des duels gagnés'],
+   train:['Secondes balles et duels aériens (ateliers spécifiques)','Jeu long ciblé — réception et fixation d\'attaquant','Centres et finitions en un ou deux touches']},
+  {id:'relationnel',label:'Jeu relationnel / Associatif',emoji:'🔗',color:'#a78bfa',
+   poids:{distribution:2,technique:2,creativite:3,decision:2,vision:2,precision:1},
+   adn:['Créer des connexions courtes','Attirer puis éliminer la pression','Nombreux triangles','Utiliser les relations entre joueurs'],
+   forces:['Sortie de balle très forte','Crée des espaces internes','Joueurs techniques en haute confiance'],
+   faiblesses:['Risque élevé proche de son but','Demande des joueurs très techniques et disciplinés'],
+   train:['Triangles et combinaisons courtes sous pression intensive','Fixation de pressing et déviation en une touche','Sortie de balle en zone défensive avec règles de jeu']},
+  {id:'defensif',label:'Bloc défensif / Bloc bas',emoji:'🛡',color:'#718096',
+   poids:{position:3,rigueur:2,sang_froid:3,concentration:2,resilience:2},
+   adn:['Fermer les espaces','Défendre la zone de vérité','Bloc compact à faible hauteur défensive','Punir en transition'],
+   forces:['Très difficile à déséquilibrer','Excellente gestion émotionnelle des moments clés'],
+   faiblesses:['Subit souvent la possession adverse','Dépend de l\'efficacité offensive sur peu d\'occasions'],
+   train:['Travail défensif en bloc bas — organisation et compacité axiale','Scénarios de gestion de score (mener, résister, égaliser)','Transitions défense→attaque efficaces sur peu d\'espace']},
+  {id:'hybride',label:'Hybride moderne',emoji:'🌀',color:'#b794f4',
+   poids:{},
+   adn:['Capable de changer de registre','Alterne possession, pressing et transition','Structures flexibles selon adversaire','Variations de rythme dans le match'],
+   forces:['Imprévisible pour l\'adversaire','Adaptable tactiquement en cours de match'],
+   faiblesses:['Complexité organisationnelle élevée','Demande une forte culture tactique collective'],
+   train:['Variations de rythme et changement de registre à l\'entraînement','Multiples organisations selon la phase de jeu','Lecture des situations et prise de décision collective rapide']}
+];
+
+const CIBLES_POSTE={GK:2,DEF:7,MIL:8,ATT:5};
+
+function calcStyleJeu(){
+  if(!players.length)return STYLES_JEU.find(s=>s.id==='hybride');
+  const n=players.length;
+  const skillAvgs={};
+  ALL_SK.forEach(s=>{skillAvgs[s.id]=players.reduce((a,p)=>a+(p.skills?.[s.id]||0),0)/n;});
+  const scored=STYLES_JEU.filter(s=>s.id!=='hybride').map(s=>{
+    const ids=Object.keys(s.poids);
+    const total=Object.values(s.poids).reduce((a,b)=>a+b,0);
+    const score=ids.reduce((sum,id)=>sum+(skillAvgs[id]||0)*s.poids[id],0)/total;
+    return{s,score};
+  }).sort((a,b)=>b.score-a.score);
+  const best=scored[0],second=scored[1];
+  if(best.score<5.0||(second&&best.score-second.score<0.25))return STYLES_JEU.find(s=>s.id==='hybride');
+  return best.s;
+}
 
 // ═══════════════════════════════════════
 //  PROFILS JOUEUR — Configuration complète
@@ -621,7 +903,7 @@ const TOUTES_COMPS=[
 // ═══════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════
-let players=[],evals=[],acts=[],staffList=[],requests=[];
+let players=[],evals=[],plans=[],cibles=[],recherches=[],matchs=[],acts=[],staffList=[],requests=[];
 let CU=null,editId=null,posFilter='';
 let CFG={bin:'',key:''};
 const KS='ur6_sess',KD='ur6_data',KC='ur6_cfg';
@@ -686,7 +968,7 @@ async function syncCloud(){
     const d=await r.json();
     const prev=JSON.stringify(players);
     if(d.players)players=d.players;if(d.evaluations)evals=d.evaluations;
-    if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
+    if(d.plans)plans=d.plans;if(d.cibles)cibles=d.cibles;if(d.recherches)recherches=d.recherches;if(d.matchs)matchs=d.matchs;if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
     saveLocal();setSyncOk();
     if(JSON.stringify(players)!==prev){renderDashboard();renderPlayers();initSelects();}
     if(CU?.isAdmin&&requests.filter(r=>r.status==='pending').length>0)document.getElementById('notif-dot').classList.add('show');
@@ -696,7 +978,7 @@ async function pushCloud(){
   if(!CFG.bin||!CFG.key){saveLocal();return false;}
   setSyncBusy();
   try{
-    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
+    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,plans,cibles,recherches,matchs,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
     saveLocal();setSyncOk();return true;
   }catch(e){setSyncErr();saveLocal();return false;}
 }
@@ -713,15 +995,15 @@ async function saveCfg(){
     if(!r.ok)throw new Error();
     const d=await r.json();
     if(!d.players||!d.players.length)await pushCloud();
-    else{players=d.players||[];evals=d.evaluations||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
+    else{players=d.players||[];evals=d.evaluations||[];plans=d.plans||[];cibles=d.cibles||[];recherches=d.recherches||[];matchs=d.matchs||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
     box.innerHTML='<div class="cfg-status cfg-ok">✅ Connexion réussie ! Sauvegarde permanente active.</div>';
     renderDashboard();renderPlayers();initSelects();toast('✓ JSONBin connecté !');
   }catch(e){box.innerHTML='<div class="cfg-status cfg-err">❌ Erreur — vérifiez BIN ID et Master Key</div>';}
 }
 
 // LOCAL STORAGE
-function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,acts,staffList,requests,ts:Date.now()}));}
-function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
+function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,plans,cibles,recherches,matchs,acts,staffList,requests,ts:Date.now()}));}
+function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];plans=o.plans||[];cibles=o.cibles||[];recherches=o.recherches||[];matchs=o.matchs||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
 
 // ═══════════════════════════════════════
 //  SCORING
@@ -1033,10 +1315,11 @@ function openDetail(id){
       ${p.progres?`<div><div style="font-size:10px;color:#f6c90e;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Progression</div><div style="font-size:13px">${p.progres}</div></div>`:''}
     </div>`:''}
 
-    <!-- Évaluations -->
-    <div class="section" style="margin-bottom:12px"><div class="section-title">📅 Évaluations mensuelles</div>
-      ${pe.length?pe.slice(0,5).map(e=>{const avg=((e.t+e.ta+e.p+e.m)/4).toFixed(1);return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(45,74,122,.5)"><span style="font-size:11px;color:#63b3ed;font-family:monospace;min-width:60px">${e.month}</span><span style="font-size:11px;color:#718096">${e.by||'—'}</span><div style="margin-left:auto;display:flex;gap:10px"><span style="font-size:11px;color:#718096">T:${e.t} Ta:${e.ta} P:${e.p} M:${e.m}</span><span style="font-weight:900;color:#f6c90e;font-size:16px">${avg}</span></div></div>`;}).join(''):`<div style="color:#718096;font-size:13px;padding:6px 0">Aucune évaluation.</div>`}
-    </div>
+    <!-- Plan d'action -->
+    <div class="section" style="margin-bottom:12px"><div class="section-title">📋 Plan d'Action</div>${renderPlanHTML(id)}</div>
+
+    <!-- Historique de Progression -->
+    <div class="section" style="margin-bottom:12px"><div class="section-title">📈 Historique de Progression</div>${renderProgHTML(id)}</div>
 
     <div class="btn-row">
       <button class="btn btn-d btn-sm" onclick="deletePlayer('${p.id}')">🗑</button>
@@ -1136,7 +1419,47 @@ function renderADN(){
   const critiques=allAvgs.filter(s=>s.avg<4.5);
   const ameliorer=allAvgs.filter(s=>s.avg>=4.5&&s.avg<6);
 
+  // Chantier 2 — Style de jeu & Manquements par poste
+  const style=calcStyleJeu();
+  const posteDist={GK:0,DEF:0,MIL:0,ATT:0};
+  players.forEach(p=>{if(posteDist[p.posGroup]!==undefined)posteDist[p.posGroup]++;});
+  const manqPoste=Object.entries(CIBLES_POSTE).filter(([k,v])=>posteDist[k]<v).map(([k,v])=>({poste:k,actual:posteDist[k],cible:v,manque:v-posteDist[k]}));
+  const surPoste=Object.entries(CIBLES_POSTE).filter(([k,v])=>posteDist[k]>v).map(([k,v])=>({poste:k,actual:posteDist[k],cible:v,surplus:posteDist[k]-v}));
+  const pColors={GK:'#ed8936',DEF:'#63b3ed',MIL:'#68d391',ATT:'#fc8181'};
+  const pNames={GK:'Gardiens',DEF:'Défenseurs',MIL:'Milieux',ATT:'Attaquants'};
+
   let html=`
+  <!-- Style de jeu -->
+  <div class="adn-section" style="border-left:4px solid ${style.color}">
+    <div class="section-title">🎮 Style de Jeu Dominant</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+      <div style="font-size:48px;line-height:1;text-align:center;min-width:56px">${style.emoji}</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:900;color:${style.color}">${style.label}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+          ${style.adn.map(a=>`<span style="background:${style.color}18;border:1px solid ${style.color}44;color:${style.color};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${a}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:rgba(104,211,145,.06);border:1px solid rgba(104,211,145,.2);border-radius:8px;padding:11px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#68d391;margin-bottom:8px">✅ Points forts</div>
+        ${style.forces.map(f=>`<div style="font-size:12px;color:#718096;padding:3px 0 3px 8px;border-left:2px solid #68d391;margin-bottom:5px;line-height:1.4">${f}</div>`).join('')}
+      </div>
+      <div style="background:rgba(252,129,129,.06);border:1px solid rgba(252,129,129,.2);border-radius:8px;padding:11px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fc8181;margin-bottom:8px">⚠ Faiblesses</div>
+        ${style.faiblesses.map(f=>`<div style="font-size:12px;color:#718096;padding:3px 0 3px 8px;border-left:2px solid #fc8181;margin-bottom:5px;line-height:1.4">${f}</div>`).join('')}
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid #2d4a7a;border-radius:8px;padding:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#63b3ed;margin-bottom:10px">💡 Recommandations d'entraînement</div>
+      ${style.train.map((t,i)=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;${i<style.train.length-1?'border-bottom:1px solid rgba(255,255,255,.05)':''}">
+        <div style="width:20px;height:20px;border-radius:50%;background:${style.color}22;border:1px solid ${style.color}55;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:${style.color};flex-shrink:0">${i+1}</div>
+        <div style="font-size:13px;color:#e2e8f0;line-height:1.4">${t}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
   <!-- Vue globale -->
   <div class="adn-section">
     <div class="section-title">📊 Vue Globale de l'Équipe</div>
@@ -1196,6 +1519,37 @@ function renderADN(){
     }).join('')}
   </div>
 
+  <!-- Manquements par poste -->
+  <div class="adn-section" style="border-left:3px solid #ed8936">
+    <div class="section-title">🔍 Manquements Collectifs par Poste</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+      ${Object.entries(CIBLES_POSTE).map(([k,v])=>{
+        const actual=posteDist[k]||0;const ok=actual>=v;const diff=actual-v;
+        return`<div class="stat-box" style="border-left-color:${ok?'#68d391':'#fc8181'}">
+          <div style="font-size:10px;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${pNames[k]}</div>
+          <div style="display:flex;align-items:baseline;gap:4px;justify-content:center">
+            <span style="font-size:28px;font-weight:900;color:${ok?'#68d391':'#fc8181'}">${actual}</span>
+            <span style="font-size:12px;color:#4a6080">/ ${v}</span>
+          </div>
+          <div style="font-size:10px;margin-top:3px;color:${ok?'#68d391':diff<-2?'#fc8181':'#ed8936'}">${ok?'✓ OK':diff===-1?'−1 manquant':diff<-1?`${diff} manquants`:'OK'}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${manqPoste.length?`<div style="background:rgba(252,129,129,.07);border:1px solid rgba(252,129,129,.25);border-radius:8px;padding:12px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fc8181;margin-bottom:8px">⚠ Postes déficitaires — orienter le recrutement</div>
+      ${manqPoste.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(252,129,129,.15)">
+        <span class="badge b-${m.poste}">${m.poste}</span>
+        <div style="flex:1;font-size:13px;color:#e2e8f0">${pNames[m.poste]}</div>
+        <div style="font-size:11px;color:#718096">${m.actual} présent${m.actual>1?'s':''} · cible ${m.cible}</div>
+        <div style="font-size:13px;font-weight:700;color:#fc8181">−${m.manque}</div>
+      </div>`).join('')}
+    </div>`:manqPoste.length===0?`<div style="color:#68d391;font-size:13px;padding:4px 0">✅ Effectif équilibré par poste — tous les quotas sont atteints.</div>`:''}
+    ${surPoste.length?`<div style="background:rgba(237,137,54,.06);border:1px solid rgba(237,137,54,.2);border-radius:8px;padding:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#ed8936;margin-bottom:7px">📦 Postes excédentaires</div>
+      ${surPoste.map(m=>`<div style="font-size:12px;color:#718096;padding:4px 0"><span class="badge b-${m.poste}">${m.poste}</span> <strong style="color:#e2e8f0">${pNames[m.poste]}</strong> — ${m.actual} joueurs · cible ${m.cible} (+${m.surplus})</div>`).join('')}
+    </div>`:''}
+  </div>
+
   <!-- Profils dans l'équipe -->
   ${Object.keys(profilDist).length?`<div class="adn-section">
     <div class="section-title">🏷 Profils dans l'Effectif</div>
@@ -1247,6 +1601,8 @@ function initSelects(){
   ['cmp-p1','cmp-p2','cmp-p3'].forEach(id=>{const e=document.getElementById(id);if(e){const v=e.value;e.innerHTML='<option value="">—</option>'+opts;e.value=v;}});
   const evPl=document.getElementById('ev-player');
   if(evPl)evPl.innerHTML='<option value="">Sélectionner…</option>'+[...players].sort((a,b)=>a.nom.localeCompare(b.nom)).map(p=>`<option value="${p.id}">${p.prenom} ${p.nom}</option>`).join('');
+  const progPl=document.getElementById('prog-player');
+  if(progPl){const v=progPl.value;progPl.innerHTML='<option value="">Sélectionner…</option>'+[...players].sort((a,b)=>a.nom.localeCompare(b.nom)).map(p=>`<option value="${p.id}">${p.prenom} ${p.nom}</option>`).join('');progPl.value=v;}
 }
 
 function renderCompare(){
@@ -1293,7 +1649,7 @@ function renderCompare(){
 function initEval(){
   initSelects();
   const now=new Date();document.getElementById('ev-month').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  renderEvalHist();
+  renderEvalHist();renderEvalAlerts();
 }
 function renderEvalHist(){
   const el=document.getElementById('eval-hist');if(!el)return;
@@ -1307,9 +1663,10 @@ async function saveEval(){
   const pid=document.getElementById('ev-player').value,month=document.getElementById('ev-month').value;
   if(!pid||!month){toast('⚠ Sélectionnez un joueur et un mois');return;}
   const p=players.find(x=>x.id===pid);
-  evals.push({id:'ev_'+Date.now(),pid,month,t:+document.getElementById('ev-t').value,ta:+document.getElementById('ev-ta').value,p:+document.getElementById('ev-p').value,m:+document.getElementById('ev-m').value,note:document.getElementById('ev-note').value.trim(),by:CU.name,ts:new Date().toISOString()});
+  const skillsSnap=p?{...(p.skills||{})}:{};
+  evals.push({id:'ev_'+Date.now(),pid,month,t:+document.getElementById('ev-t').value,ta:+document.getElementById('ev-ta').value,p:+document.getElementById('ev-p').value,m:+document.getElementById('ev-m').value,note:document.getElementById('ev-note').value.trim(),by:CU.name,ts:new Date().toISOString(),skills:skillsSnap});
   addAct('a évalué',p?`${p.prenom} ${p.nom}`:'');
-  const ok=await pushCloud();renderEvalHist();renderDashboard();document.getElementById('ev-note').value='';
+  const ok=await pushCloud();renderEvalHist();renderDashboard();renderEvalAlerts();renderEvalProg();document.getElementById('ev-note').value='';
   toast(ok?'✓ Évaluation sauvegardée définitivement':'✓ Évaluation sauvegardée localement');
 }
 
@@ -1395,6 +1752,784 @@ function addAct(action,player){acts.unshift({who:CU.name,action,player,time:new 
 function showLoading(m){document.getElementById('ltxt').textContent=m||'…';document.getElementById('loading').classList.add('show');}
 function hideLoading(){document.getElementById('loading').classList.remove('show');}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+// ═══════════════════════════════════════
+//  CHANTIER 1 — HISTORIQUE DE PROGRESSION
+// ═══════════════════════════════════════
+
+// Calcule les alertes de régression entre les 2 dernières évaluations d'un joueur
+function calcAlerts(pid,threshold=1){
+  const pe=evals.filter(e=>e.pid===pid&&e.skills).sort((a,b)=>a.month.localeCompare(b.month));
+  if(pe.length<2)return[];
+  const prev=pe[pe.length-2],curr=pe[pe.length-1];
+  return ALL_SK.filter(s=>(prev.skills[s.id]||0)-(curr.skills[s.id]||0)>=threshold)
+    .map(s=>({id:s.id,lb:s.lb,prev:prev.skills[s.id]||0,curr:curr.skills[s.id]||0,delta:(curr.skills[s.id]||0)-(prev.skills[s.id]||0)}));
+}
+
+// Construit le HTML de progression pour la fiche d'un joueur
+function renderProgHTML(pid){
+  const pe=evals.filter(e=>e.pid===pid).sort((a,b)=>a.month.localeCompare(b.month));
+  if(!pe.length)return'<div style="color:#718096;font-size:13px">Aucune évaluation — enregistrez la première depuis l\'onglet Évaluations.</div>';
+
+  // Timeline des évaluations
+  let html='<div class="prog-row">';
+  pe.forEach((e,i)=>{
+    const avg=((e.t+e.ta+e.p+e.m)/4).toFixed(1);
+    const prevE=i>0?pe[i-1]:null;
+    const prevAvg=prevE?((prevE.t+prevE.ta+prevE.p+prevE.m)/4):null;
+    const delta=prevAvg!=null?(parseFloat(avg)-prevAvg).toFixed(1):null;
+    const dCol=delta===null?'':delta>0?'#68d391':delta<0?'#fc8181':'#718096';
+    const dTxt=delta===null?'':delta>0?`+${delta}`:delta;
+    html+=`<div class="prog-item${i===pe.length-1?' latest':''}">
+      <div style="font-size:9px;color:#63b3ed;font-family:monospace">${e.month}</div>
+      <div style="font-size:20px;font-weight:900;color:#f6c90e;line-height:1.3">${avg}</div>
+      <div style="font-size:10px;color:${dCol||'#4a6080'}">${dTxt||'—'}</div>
+      <div style="font-size:9px;color:#4a6080;margin-top:2px">T${e.t} Ta${e.ta} P${e.p} M${e.m}</div>
+    </div>`;
+  });
+  html+='</div>';
+
+  // Comparaison première ↔ dernière éval (skills granulaires)
+  if(pe.length>=2){
+    const first=pe[0],last=pe[pe.length-1];
+    if(first.skills&&last.skills){
+      const changes=ALL_SK.map(s=>({lb:s.lb,a:first.skills[s.id]||0,b:last.skills[s.id]||0,d:(last.skills[s.id]||0)-(first.skills[s.id]||0)}))
+        .filter(x=>x.d!==0).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,10);
+      if(changes.length){
+        html+=`<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#718096;margin-bottom:8px">Évolution par compétence — ${first.month} → ${last.month}</div>`;
+        html+=changes.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(45,74,122,.3)">
+          <div style="font-size:12px;color:#e2e8f0;flex:1">${c.lb}</div>
+          <div style="font-size:11px;color:#718096">${c.a} → ${c.b}</div>
+          <div style="font-size:13px;font-weight:700;color:${c.d>0?'#68d391':'#fc8181'};min-width:28px;text-align:right">${c.d>0?'+':''}${c.d}</div>
+        </div>`).join('');
+        html+='</div>';
+      }
+    }
+  }
+
+  // Alertes de régression vs éval précédente
+  const alerts=calcAlerts(pid);
+  if(alerts.length){
+    html+=`<div style="background:rgba(252,129,129,.08);border:1px solid rgba(252,129,129,.3);border-radius:8px;padding:12px;margin-top:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fc8181;margin-bottom:8px">⚠ Régressions vs évaluation précédente</div>
+      ${alerts.map(a=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(252,129,129,.15)">
+        <div style="width:7px;height:7px;border-radius:50%;background:#fc8181;flex-shrink:0"></div>
+        <div style="flex:1;font-size:12px">${a.lb}</div>
+        <div style="font-size:11px;color:#718096">${a.prev} → ${a.curr}</div>
+        <div style="font-size:13px;font-weight:700;color:#fc8181">${a.delta}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  return html;
+}
+
+// Affiche les alertes de tous les joueurs dans l'onglet Évaluations
+function renderEvalAlerts(){
+  const el=document.getElementById('eval-alerts');if(!el)return;
+  const allAlerts=players.map(p=>({p,alerts:calcAlerts(p.id)})).filter(x=>x.alerts.length>0);
+  if(!allAlerts.length){el.innerHTML='<div style="color:#68d391;font-size:13px;padding:6px 0">✅ Aucune régression détectée parmi les joueurs évalués.</div>';return;}
+  el.innerHTML=allAlerts.map(({p,alerts})=>`<div style="padding:9px 0;border-bottom:1px solid rgba(45,74,122,.4)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <strong style="font-size:13px;color:#e2e8f0;cursor:pointer" onclick="openDetail('${p.id}')">${p.prenom} ${p.nom}</strong>
+      <span class="badge b-${p.posGroup||'MIL'}">${p.posGroup||'—'}</span>
+    </div>
+    ${alerts.map(a=>`<div style="font-size:11px;color:#718096;padding:2px 0 2px 10px">⬇ <strong style="color:#fc8181">${a.lb}</strong> : ${a.prev} → ${a.curr} (${a.delta})</div>`).join('')}
+  </div>`).join('');
+}
+
+// Affiche la progression du joueur sélectionné dans l'onglet Évaluations
+function renderEvalProg(){
+  const pid=document.getElementById('prog-player')?.value;
+  const el=document.getElementById('eval-prog-content');if(!el)return;
+  if(!pid){el.innerHTML='<div style="color:#718096;font-size:13px">Sélectionnez un joueur.</div>';return;}
+  el.innerHTML=renderProgHTML(pid);
+}
+
+// ─── Plan d'action ───────────────────────
+function openPlanModal(pid){
+  document.getElementById('plan-pid').value=pid;
+  const p=players.find(x=>x.id===pid);
+  document.getElementById('plan-player-name').textContent=p?`${p.prenom} ${p.nom}`:'—';
+  const existing=plans.find(x=>x.pid===pid&&!x.done);
+  document.getElementById('plan-desc').value=existing?.description||'';
+  document.getElementById('plan-deadline').value=existing?.deadline||'';
+  document.getElementById('plan-edit-id').value=existing?.id||'';
+  const sel=existing?.skills||[];
+  document.getElementById('plan-skills').innerHTML=ALL_SK.map(s=>`<div class="comp-tag${sel.includes(s.id)?' sel':''}" onclick="this.classList.toggle('sel')" data-sid="${s.id}">${s.lb}</div>`).join('');
+  openModal('modal-plan');
+}
+
+async function savePlanAction(){
+  const pid=document.getElementById('plan-pid').value;if(!pid)return;
+  const desc=document.getElementById('plan-desc').value.trim();
+  const deadline=document.getElementById('plan-deadline').value;
+  const skills=Array.from(document.querySelectorAll('#plan-skills .comp-tag.sel')).map(el=>el.dataset.sid).filter(Boolean);
+  if(!skills.length&&!desc){toast('⚠ Ajoutez des compétences cibles ou une description');return;}
+  const eid=document.getElementById('plan-edit-id').value;
+  if(eid){
+    const idx=plans.findIndex(x=>x.id===eid);
+    if(idx>=0)plans[idx]={...plans[idx],skills,description:desc,deadline,updatedAt:new Date().toISOString(),by:CU.name};
+  }else{
+    plans.filter(x=>x.pid===pid&&!x.done).forEach(x=>{x.done=true;x.archivedAt=new Date().toISOString();});
+    plans.push({id:'plan_'+Date.now(),pid,skills,description:desc,deadline,createdAt:new Date().toISOString(),by:CU.name,done:false});
+  }
+  const ok=await pushCloud();
+  closeModal('modal-plan');
+  toast(ok?'✓ Plan sauvegardé':'✓ Plan sauvegardé localement');
+  openDetail(pid);
+}
+
+async function completePlan(id){
+  const plan=plans.find(x=>x.id===id);if(!plan)return;
+  plan.done=true;plan.completedAt=new Date().toISOString();
+  const ok=await pushCloud();
+  toast('✅ Plan marqué comme terminé');
+  openDetail(plan.pid);
+}
+
+function renderPlanHTML(pid){
+  const plan=plans.find(x=>x.pid===pid&&!x.done);
+  if(!plan)return`<div style="color:#718096;font-size:12px;padding:4px 0;margin-bottom:10px">Aucun plan actif pour ce joueur.</div><button class="btn btn-o btn-sm" onclick="openPlanModal('${pid}')">+ Définir un plan</button>`;
+  const skillLabels=plan.skills.map(id=>ALL_SK.find(s=>s.id===id)?.lb).filter(Boolean);
+  return`<div class="plan-box">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#a78bfa">Plan actif</div>
+      ${plan.deadline?`<div style="font-size:10px;color:#718096;margin-left:auto">Échéance : <strong style="color:#e2e8f0">${plan.deadline}</strong></div>`:''}
+    </div>
+    ${skillLabels.length?`<div style="margin-bottom:8px">${skillLabels.map(lb=>`<span class="plan-skill">${lb}</span>`).join('')}</div>`:''}
+    ${plan.description?`<div style="font-size:12px;color:#718096;font-style:italic;margin-bottom:10px">"${plan.description}"</div>`:''}
+    <div style="font-size:10px;color:#4a6080;margin-bottom:8px">Créé le ${new Date(plan.createdAt).toLocaleDateString('fr-FR')} par ${plan.by||'—'}</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-o btn-sm" onclick="openPlanModal('${pid}')">✏️ Modifier</button>
+      <button class="btn btn-g btn-sm" onclick="completePlan('${plan.id}')">✅ Terminer</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+//  CHANTIER 3 — RECRUTEMENT / CIBLES
+// ═══════════════════════════════════════
+const SC_RECH={ouverte:{lb:'Ouverte',c:'#f6c90e'},en_cours:{lb:'En cours',c:'#63b3ed'},conclue:{lb:'Conclue',c:'#68d391'}};
+
+function renderRecrutement(){
+  const actives=cibles.filter(c=>c.statut!=='archived');
+  const archived=cibles.filter(c=>c.statut==='archived');
+  const statsEl=document.getElementById('recr-stats');
+  if(statsEl)statsEl.innerHTML=`
+    <div class="stat-box"><div class="stat-n">${actives.length}</div><div class="stat-l">Cibles actives</div></div>
+    <div class="stat-box" style="border-left-color:#63b3ed"><div class="stat-n" style="color:#63b3ed">${recherches.length}</div><div class="stat-l">Recherches</div></div>
+    <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${recherches.filter(r=>r.statut!=='conclue').length}</div><div class="stat-l">En cours</div></div>
+    <div class="stat-box" style="border-left-color:#a78bfa"><div class="stat-n" style="color:#a78bfa">${cibles.reduce((a,c)=>a+c.observations.length,0)}</div><div class="stat-l">Observations</div></div>
+  `;
+  const cnt=document.getElementById('recr-count');
+  if(cnt)cnt.textContent=`${actives.length} cible${actives.length>1?'s':''} · ${recherches.length} recherche${recherches.length>1?'s':''}`;
+  const el=document.getElementById('recrutement-content');if(!el)return;
+  if(!recherches.length&&!cibles.length){el.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><h3>Base de recrutement vide</h3><p>Créez une Recherche pour structurer votre pipeline, puis ajoutez des Cibles.</p></div>';return;}
+
+  let html='<div class="section"><div class="section-title">🔍 Recherches ('+recherches.length+')</div>';
+  if(!recherches.length){html+='<div style="color:#718096;font-size:13px">Aucune recherche — cliquez &quot;+ Recherche&quot; pour démarrer.</div>';}
+  else html+=recherches.slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(r=>{
+    const sc=SC_RECH[r.statut]||SC_RECH.ouverte;
+    const linked=cibles.filter(c=>c.rechercheId===r.id&&c.statut!=='archived');
+    return`<div class="rech-card${r.statut==='conclue'?' conclue':''}">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+        ${r.poste?`<span class="badge b-${r.poste}" style="flex-shrink:0">${r.poste}</span>`:''}
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:#e2e8f0">${r.titre}</div>
+          ${r.manquement?`<div style="font-size:11px;color:#718096;margin-top:3px;font-style:italic">${r.manquement}</div>`:''}
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <span style="background:${sc.c}18;border:1px solid ${sc.c}44;color:${sc.c};padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700">${sc.lb}</span>
+          <button class="btn btn-o btn-sm" onclick="openRechercheModal('${r.id}')">✏️</button>
+          <button class="btn btn-d btn-sm" onclick="deleteRecherche('${r.id}')">🗑</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:30px">
+        ${linked.length?linked.map(c=>`<div style="background:#0e1a2e;border:1px solid #2d4a7a;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer" onclick="openCibleDetail('${c.id}')">
+          <strong style="color:#e2e8f0">${c.prenom?c.prenom+' ':''}${c.nom}</strong>
+          ${c.club?`<span style="color:#718096"> · ${c.club}</span>`:''}
+          ${c.observations.length?`<span style="color:#a78bfa;margin-left:5px">· ${c.observations.length} obs</span>`:''}
+        </div>`).join(''):'<div style="color:#4a6080;font-size:12px;font-style:italic;padding:5px 0">Aucune cible liée.</div>'}
+      </div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-o btn-sm" onclick="openCibleModal(null,'${r.id}')">+ Cible</button>
+        ${linked.length>=2?`<button class="btn btn-o btn-sm" onclick="comparerCibles('${r.id}')">⚖️ Comparer</button>`:''}
+        <div style="margin-left:auto">
+          <select class="filter-sel" style="font-size:11px;padding:5px 8px" onchange="updateRechercheStatut('${r.id}',this.value)">
+            <option value="ouverte"${r.statut==='ouverte'?' selected':''}>🟡 Ouverte</option>
+            <option value="en_cours"${r.statut==='en_cours'?' selected':''}>🔵 En cours</option>
+            <option value="conclue"${r.statut==='conclue'?' selected':''}>🟢 Conclue</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  html+='</div>';
+
+  const libres=actives.filter(c=>!c.rechercheId);
+  if(libres.length)html+=`<div class="section"><div class="section-title">🎯 Cibles sans recherche (${libres.length})</div><div class="players-grid">${libres.map(c=>renderCibleCard(c)).join('')}</div></div>`;
+  if(archived.length)html+=`<div class="section"><div class="section-title">📦 Archives (${archived.length})</div><div class="players-grid">${archived.map(c=>renderCibleCard(c)).join('')}</div></div>`;
+  el.innerHTML=html;
+}
+
+function renderCibleCard(c){
+  const init=(c.prenom?c.prenom[0]:'?')+(c.nom?c.nom[0]:'?');
+  const lastObs=[...c.observations].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const avgScore=lastObs?((lastObs.t+lastObs.ta+lastObs.p+lastObs.m)/4).toFixed(1):null;
+  return`<div class="player-card" onclick="openCibleDetail('${c.id}')">
+    <div class="pc-top">
+      <div class="pc-av" style="background:linear-gradient(135deg,#1a2a5e,#553c9a)">${init}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:#fff">${c.prenom?c.prenom+' ':''}${c.nom}</div>
+        <div style="font-size:11px;color:#718096">${[c.club,c.niveauEstime].filter(Boolean).join(' · ')||'—'}</div>
+        <div style="margin-top:4px">
+          ${c.posGroup?`<span class="badge b-${c.posGroup}">${c.posGroup}</span>`:''}
+          ${c.statut==='archived'?'<span class="badge" style="background:rgba(113,128,150,.15);color:#718096;border:1px solid #2d4a7a">Archivé</span>':''}
+        </div>
+      </div>
+      ${avgScore?`<div class="pc-ovr" style="color:#a78bfa;border-color:#a78bfa;font-size:14px">${avgScore}</div>`:'<div class="pc-ovr" style="color:#4a6080;border-color:#2d4a7a;font-size:11px">N/A</div>'}
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#718096">${c.observations.length?`${c.observations.length} obs · Dernière : ${lastObs.date}`:'Aucune observation'}</div>
+  </div>`;
+}
+
+function openCibleModal(id,rechId){
+  document.getElementById('cib-edit-id').value=id||'';
+  const c=id?cibles.find(x=>x.id===id):null;
+  document.getElementById('cib-title').textContent=c?'Modifier la Cible':'Nouvelle Cible';
+  document.getElementById('cib-nom').value=c?.nom||'';
+  document.getElementById('cib-pre').value=c?.prenom||'';
+  document.getElementById('cib-club').value=c?.club||'';
+  document.getElementById('cib-niveau').value=c?.niveauEstime||'';
+  document.getElementById('cib-contact').value=c?.contact||'';
+  document.getElementById('cib-pos').value=c?.position||'';
+  document.getElementById('cib-notes').value=c?.notes||'';
+  const rs=document.getElementById('cib-rech');
+  rs.innerHTML='<option value="">— Aucune —</option>'+recherches.filter(r=>r.statut!=='conclue').map(r=>`<option value="${r.id}"${(c?.rechercheId||rechId)===r.id?' selected':''}>${r.titre}</option>`).join('');
+  if(!c&&rechId)rs.value=rechId;
+  openModal('modal-cible');
+}
+
+async function saveCible(){
+  const nom=document.getElementById('cib-nom').value.trim();
+  if(!nom){toast('⚠ Le nom est obligatoire');return;}
+  const pos=document.getElementById('cib-pos').value;
+  const eid=document.getElementById('cib-edit-id').value;
+  const existing=eid?cibles.find(x=>x.id===eid):null;
+  const c={
+    id:eid||'cib_'+Date.now(),nom,
+    prenom:document.getElementById('cib-pre').value.trim(),
+    club:document.getElementById('cib-club').value.trim(),
+    niveauEstime:document.getElementById('cib-niveau').value.trim(),
+    contact:document.getElementById('cib-contact').value.trim(),
+    position:pos,posGroup:pos?pos.split('-')[0]:'',
+    notes:document.getElementById('cib-notes').value.trim(),
+    rechercheId:document.getElementById('cib-rech').value||null,
+    statut:existing?.statut||'active',
+    observations:existing?.observations||[],
+    createdAt:existing?.createdAt||new Date().toISOString(),
+    updatedAt:new Date().toISOString(),by:CU.name
+  };
+  if(eid){const i=cibles.findIndex(x=>x.id===eid);if(i>=0)cibles[i]=c;}else cibles.push(c);
+  addAct(eid?'a modifié la cible':'a ajouté la cible',`${c.prenom?c.prenom+' ':''}${c.nom}`);
+  const ok=await pushCloud();
+  closeModal('modal-cible');renderRecrutement();
+  toast(ok?`✓ ${c.nom} sauvegardé`:`✓ ${c.nom} sauvegardé localement`);
+}
+
+async function archiveCible(id){
+  const c=cibles.find(x=>x.id===id);if(!c)return;
+  c.statut=c.statut==='archived'?'active':'archived';c.updatedAt=new Date().toISOString();
+  await pushCloud();closeModal('modal-detail');renderRecrutement();
+  toast(c.statut==='archived'?'📦 Cible archivée':'✓ Cible restaurée');
+}
+
+async function deleteCiblePermanent(id){
+  const c=cibles.find(x=>x.id===id);
+  if(!confirm(`Supprimer définitivement ${c?.prenom?c.prenom+' ':''}${c?.nom} ?`))return;
+  cibles=cibles.filter(x=>x.id!==id);
+  await pushCloud();closeModal('modal-detail');renderRecrutement();toast('Cible supprimée');
+}
+
+function openObsModal(cibleId){
+  const c=cibles.find(x=>x.id===cibleId);if(!c)return;
+  document.getElementById('obs-cible-id').value=cibleId;
+  document.getElementById('obs-cible-name').textContent=`${c.prenom?c.prenom+' ':''}${c.nom}`;
+  const now=new Date();
+  document.getElementById('obs-date').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  ['obs-context','obs-note'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['obs-t','obs-ta','obs-p','obs-m'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=5;});
+  ['obs-vt','obs-vta','obs-vp','obs-vm'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=5;});
+  openModal('modal-obs');
+}
+
+async function saveObs(){
+  const cid=document.getElementById('obs-cible-id').value;
+  const date=document.getElementById('obs-date').value;
+  if(!cid||!date){toast('⚠ Date obligatoire');return;}
+  const c=cibles.find(x=>x.id===cid);if(!c)return;
+  c.observations.push({
+    id:'obs_'+Date.now(),date,
+    t:+document.getElementById('obs-t').value,ta:+document.getElementById('obs-ta').value,
+    p:+document.getElementById('obs-p').value,m:+document.getElementById('obs-m').value,
+    context:document.getElementById('obs-context').value.trim(),
+    note:document.getElementById('obs-note').value.trim(),
+    by:CU.name,ts:new Date().toISOString()
+  });
+  c.updatedAt=new Date().toISOString();
+  const ok=await pushCloud();closeModal('modal-obs');
+  toast(ok?'✓ Observation sauvegardée':'✓ Sauvegardé localement');
+  openCibleDetail(cid);
+}
+
+function openCibleDetail(id){
+  const c=cibles.find(x=>x.id===id);if(!c)return;
+  const r=c.rechercheId?recherches.find(x=>x.id===c.rechercheId):null;
+  const init=(c.prenom?c.prenom[0]:'?')+(c.nom?c.nom[0]:'?');
+  const obs=[...c.observations].sort((a,b)=>b.date.localeCompare(a.date));
+  const lastAvg=obs.length?((obs[0].t+obs[0].ta+obs[0].p+obs[0].m)/4).toFixed(1):null;
+  document.getElementById('detail-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2d4a7a">
+      <div class="pc-av" style="width:54px;height:54px;font-size:20px;background:linear-gradient(135deg,#1a2a5e,#553c9a)">${init}</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:900;color:#fff">${c.prenom?c.prenom+' ':''}${c.nom}</div>
+        <div style="font-size:12px;color:#718096;margin-top:3px">${[c.club,c.niveauEstime].filter(Boolean).join(' · ')||'—'}</div>
+        <div style="margin-top:5px">
+          ${c.posGroup?`<span class="badge b-${c.posGroup}">${c.posGroup}</span>`:''}
+          ${c.position?`<span style="font-size:11px;color:#718096;margin-left:6px">${c.position.split('-').slice(1).join(' ')}</span>`:''}
+          ${c.statut==='archived'?'<span class="badge" style="background:rgba(113,128,150,.15);color:#718096;border:1px solid #2d4a7a;margin-left:4px">Archivé</span>':''}
+        </div>
+      </div>
+      ${lastAvg?`<div style="text-align:center"><div style="font-size:36px;font-weight:900;color:#a78bfa;line-height:1">${lastAvg}</div><div style="font-size:9px;color:#718096;letter-spacing:1px;text-transform:uppercase">Score</div></div>`:''}
+    </div>
+    ${c.contact?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;background:#0e1a2e;border:1px solid #2d4a7a;border-radius:8px;padding:10px">
+      <span style="font-size:10px;color:#63b3ed;text-transform:uppercase;letter-spacing:1px;flex-shrink:0">Contact</span>
+      <span style="font-size:13px;color:#e2e8f0">${c.contact}</span>
+    </div>`:''}
+    ${c.notes?`<div style="background:#0e1a2e;border-radius:8px;padding:10px;font-size:12px;color:#718096;font-style:italic;margin-bottom:12px">"${c.notes}"</div>`:''}
+    ${r?`<div style="background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.2);border-radius:8px;padding:10px;margin-bottom:12px">
+      <div style="font-size:10px;color:#63b3ed;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">🔍 Recherche liée</div>
+      <div style="font-size:13px;font-weight:700;color:#e2e8f0">${r.titre}</div>
+      ${r.manquement?`<div style="font-size:11px;color:#718096;margin-top:2px">${r.manquement}</div>`:''}
+    </div>`:''}
+    <div class="section" style="margin-bottom:12px"><div class="section-title">📋 Observations (${obs.length})</div>
+      ${obs.length?obs.map(o=>{
+        const avg=((o.t+o.ta+o.p+o.m)/4).toFixed(1);
+        return`<div style="padding:10px 0;border-bottom:1px solid rgba(45,74,122,.5)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
+            <span style="font-size:11px;color:#63b3ed;font-family:monospace">${o.date}</span>
+            ${o.context?`<span style="font-size:11px;color:#718096;font-style:italic">${o.context}</span>`:''}
+            <span style="margin-left:auto;font-size:18px;font-weight:900;color:#a78bfa">${avg}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px">
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#63b3ed">${o.t}</div><div style="font-size:9px;color:#4a6080">TECH</div></div>
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#63b3ed">${o.ta}</div><div style="font-size:9px;color:#4a6080">TACT</div></div>
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#68d391">${o.p}</div><div style="font-size:9px;color:#4a6080">PHYS</div></div>
+            <div style="text-align:center"><div style="font-size:16px;font-weight:700;color:#f6c90e">${o.m}</div><div style="font-size:9px;color:#4a6080">MENT</div></div>
+          </div>
+          ${o.note?`<div style="font-size:12px;color:#718096;font-style:italic">"${o.note}"</div>`:''}
+          <div style="font-size:10px;color:#4a6080;margin-top:4px">Par ${o.by||'—'}</div>
+        </div>`;
+      }).join(''):`<div style="color:#718096;font-size:13px;padding:6px 0">Aucune observation — cliquez &quot;+ Observation&quot; pour commencer le suivi.</div>`}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-d btn-sm" onclick="deleteCiblePermanent('${c.id}')">🗑</button>
+      <button class="btn btn-o btn-sm" onclick="archiveCible('${c.id}')">${c.statut==='archived'?'📤 Restaurer':'📦 Archiver'}</button>
+      <button class="btn btn-o" onclick="closeModal('modal-detail');setTimeout(()=>openObsModal('${c.id}'),60)">+ Observation</button>
+      <button class="btn btn-p" style="flex:1" onclick="openCibleModal('${c.id}');closeModal('modal-detail')">✏️ Modifier</button>
+    </div>
+  `;
+  openModal('modal-detail');
+}
+
+function openRechercheModal(id){
+  const r=id?recherches.find(x=>x.id===id):null;
+  document.getElementById('rech-edit-id').value=id||'';
+  document.getElementById('rech-title').textContent=r?'Modifier la Recherche':'Nouvelle Recherche';
+  document.getElementById('rech-titre').value=r?.titre||'';
+  document.getElementById('rech-poste').value=r?.poste||'';
+  document.getElementById('rech-manq').value=r?.manquement||'';
+  document.getElementById('rech-statut').value=r?.statut||'ouverte';
+  openModal('modal-rech');
+}
+
+async function saveRecherche(){
+  const titre=document.getElementById('rech-titre').value.trim();
+  if(!titre){toast('⚠ Le titre est obligatoire');return;}
+  const eid=document.getElementById('rech-edit-id').value;
+  const r={
+    id:eid||'rech_'+Date.now(),titre,
+    poste:document.getElementById('rech-poste').value,
+    manquement:document.getElementById('rech-manq').value.trim(),
+    statut:document.getElementById('rech-statut').value,
+    createdAt:eid?recherches.find(x=>x.id===eid)?.createdAt||new Date().toISOString():new Date().toISOString(),
+    updatedAt:new Date().toISOString(),by:CU.name
+  };
+  if(eid){const i=recherches.findIndex(x=>x.id===eid);if(i>=0)recherches[i]=r;}else recherches.push(r);
+  addAct(eid?'a modifié':'a créé la recherche',titre);
+  const ok=await pushCloud();closeModal('modal-rech');renderRecrutement();
+  toast(ok?`✓ "${titre}" sauvegardé`:'✓ Sauvegardé localement');
+}
+
+async function deleteRecherche(id){
+  const r=recherches.find(x=>x.id===id);
+  if(!confirm(`Supprimer la recherche "${r?.titre}" ? Les cibles liées ne seront pas supprimées.`))return;
+  recherches=recherches.filter(x=>x.id!==id);
+  cibles.filter(c=>c.rechercheId===id).forEach(c=>{c.rechercheId=null;c.updatedAt=new Date().toISOString();});
+  await pushCloud();renderRecrutement();toast('Recherche supprimée');
+}
+
+async function updateRechercheStatut(id,statut){
+  const r=recherches.find(x=>x.id===id);if(!r)return;
+  r.statut=statut;r.updatedAt=new Date().toISOString();
+  await pushCloud();renderRecrutement();
+}
+
+function comparerCibles(rechercheId){
+  const linked=cibles.filter(c=>c.rechercheId===rechercheId&&c.statut!=='archived');
+  if(linked.length<2){toast('⚠ Minimum 2 cibles pour comparer');return;}
+  const r=recherches.find(x=>x.id===rechercheId);
+  const getObs=c=>[...c.observations].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const rows=[
+    {label:'Club',vals:linked.map(c=>c.club||'—')},
+    {label:'Niveau estimé',vals:linked.map(c=>c.niveauEstime||'—')},
+    {label:'Observations',vals:linked.map(c=>c.observations.length.toString())},
+  ];
+  const hasObs=linked.some(c=>c.observations.length>0);
+  if(hasObs){
+    ['Technique','Tactique','Physique','Mental'].forEach((lb,i)=>{
+      const keys=['t','ta','p','m'];
+      rows.push({label:lb,vals:linked.map(c=>{const o=getObs(c);return o?o[keys[i]].toString():'—';})});
+    });
+    rows.push({label:'Moyenne',vals:linked.map(c=>{const o=getObs(c);return o?((o.t+o.ta+o.p+o.m)/4).toFixed(1):'—';})});
+  }
+  document.getElementById('detail-content').innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:20px;font-weight:900;color:#a78bfa;margin-bottom:4px">⚖️ Comparaison de Cibles</div>
+      <div style="font-size:12px;color:#718096">Recherche : ${r?.titre||'—'}</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Critère</th>${linked.map(c=>`<th style="color:#a78bfa">${c.prenom?c.prenom+' ':''}${c.nom}</th>`).join('')}</tr></thead>
+      <tbody>
+        <tr><td>Poste</td>${linked.map(c=>`<td>${c.posGroup?`<span class="badge b-${c.posGroup}">${c.posGroup}</span>`:'—'}</td>`).join('')}</tr>
+        ${rows.map(row=>{
+          const nums=row.vals.map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+          const max=nums.length?Math.max(...nums):null,min=nums.length?Math.min(...nums):null;
+          return`<tr><td>${row.label}</td>${row.vals.map(v=>{const n=parseFloat(v);const ok=!isNaN(n);
+            return`<td class="${ok&&max!==null&&n===max&&max!==min?'comp-hi':ok&&min!==null&&n===min&&max!==min?'comp-lo':''}" style="font-size:16px">${v}</td>`;
+          }).join('')}</tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+    <div style="font-size:11px;color:#718096;margin-top:8px"><span style="color:#68d391">■</span> Meilleure valeur &nbsp;<span style="color:#fc8181">■</span> Plus basse valeur</div>
+    <div class="btn-row"><button class="btn btn-o" onclick="closeModal('modal-detail')">Fermer</button></div>
+  `;
+  openModal('modal-detail');
+}
+
+// ═══════════════════════════════════════
+//  CHANTIER 4 — MATCHS & COMPOSITION OPTIMALE
+// ═══════════════════════════════════════
+
+// US-19 : Ouvrir le modal de création/édition de match
+function openMatchModal(id){
+  const m=id?matchs.find(x=>x.id===id):null;
+  document.getElementById('match-modal-title').textContent=m?'Modifier le match':'Nouveau Match';
+  document.getElementById('m-edit-id').value=m?m.id:'';
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('m-date').value=m?m.date:today;
+  document.getElementById('m-adv').value=m?m.adversaire:'';
+  document.getElementById('m-bg').value=m?(m.score?.split('-')[0]||0):0;
+  document.getElementById('m-ba').value=m?(m.score?.split('-')[1]||0):0;
+  document.getElementById('m-lieu').value=m?(m.lieu||'dom'):'dom';
+  document.getElementById('m-comp').value=m?(m.competition||''):'';
+  document.getElementById('m-notes').value=m?(m.notes||''):'';
+  // Grille titulaires
+  const grid=document.getElementById('m-titulaires-grid');
+  const sorted=[...players].sort((a,b)=>(a.nom||'').localeCompare(b.nom||''));
+  grid.innerHTML=sorted.map(p=>{
+    const sel=m&&m.titulaires&&m.titulaires.includes(p.id);
+    const pos=p.position?p.position.split('-')[0]:'';
+    return`<div class="comp-tag${sel?' sel':''}" data-pid="${p.id}" onclick="toggleTitulaire(this)" style="font-size:11px">
+      <span class="badge b-${pos}" style="font-size:8px">${pos}</span> ${p.prenom?p.prenom[0]+'.':''} ${p.nom||'?'}
+    </div>`;
+  }).join('');
+  // Changements
+  const clist=document.getElementById('m-changements-list');
+  clist.innerHTML='';
+  if(m&&m.changements){m.changements.forEach(ch=>addChangement(ch));}
+  openModal('modal-match');
+}
+
+function toggleTitulaire(el){
+  const sel=document.querySelectorAll('#m-titulaires-grid .comp-tag.sel');
+  if(!el.classList.contains('sel')&&sel.length>=11){toast('Maximum 11 titulaires');return;}
+  el.classList.toggle('sel');
+}
+
+// US-20 : Ajouter un changement entrant/sortant
+function addChangement(data){
+  const clist=document.getElementById('m-changements-list');
+  const idx=clist.children.length;
+  const playerOpts=players.map(p=>`<option value="${p.id}">${p.prenom?p.prenom[0]+'. ':''}${p.nom||'?'}</option>`).join('');
+  const div=document.createElement('div');
+  div.className='form-row';div.style.marginBottom='8px';div.setAttribute('data-ch',idx);
+  div.innerHTML=`
+    <div class="fg"><label class="fl">Sortant</label><select class="fs ch-out">${playerOpts}</select></div>
+    <div class="fg"><label class="fl">Entrant</label><select class="fs ch-in">${playerOpts}</select></div>
+    <div class="fg" style="max-width:90px"><label class="fl">Minute</label><input type="number" class="fi ch-min" min="1" max="120" value="${data?data.minute||60:60}"></div>
+    <div class="fg" style="max-width:36px;display:flex;align-items:flex-end;padding-bottom:2px"><button class="btn btn-d btn-sm" onclick="this.closest('[data-ch]').remove()">✕</button></div>
+  `;
+  if(data){
+    setTimeout(()=>{
+      const s=div.querySelector('.ch-out'),e=div.querySelector('.ch-in');
+      if(s)s.value=data.sortant||'';if(e)e.value=data.entrant||'';
+    },0);
+  }
+  clist.appendChild(div);
+}
+
+// Enregistrer un match
+async function saveMatch(){
+  const adv=document.getElementById('m-adv').value.trim();
+  if(!adv){toast('Renseignez l\'adversaire');return;}
+  const bg=parseInt(document.getElementById('m-bg').value)||0;
+  const ba=parseInt(document.getElementById('m-ba').value)||0;
+  const titulaires=[...document.querySelectorAll('#m-titulaires-grid .comp-tag.sel')].map(el=>el.dataset.pid);
+  const changements=[...document.querySelectorAll('#m-changements-list [data-ch]')].map(div=>({
+    sortant:div.querySelector('.ch-out')?.value||'',
+    entrant:div.querySelector('.ch-in')?.value||'',
+    minute:parseInt(div.querySelector('.ch-min')?.value)||60
+  })).filter(ch=>ch.sortant&&ch.entrant&&ch.sortant!==ch.entrant);
+  const editId=document.getElementById('m-edit-id').value;
+  const m={
+    id:editId||'m_'+Date.now(),
+    date:document.getElementById('m-date').value||new Date().toISOString().slice(0,10),
+    adversaire:adv,
+    score:`${bg}-${ba}`,
+    lieu:document.getElementById('m-lieu').value,
+    competition:document.getElementById('m-comp').value.trim(),
+    titulaires,
+    changements,
+    notes:document.getElementById('m-notes').value.trim(),
+    by:CU?.name||'?',
+    ts:new Date().toISOString()
+  };
+  if(editId){const i=matchs.findIndex(x=>x.id===editId);if(i>=0)matchs[i]=m;else matchs.unshift(m);}
+  else{matchs.unshift(m);}
+  await pushCloud();
+  closeModal('modal-match');renderMatchs();
+  toast('✓ Match enregistré');
+}
+
+async function deleteMatch(id){
+  if(!confirm('Supprimer ce match ?'))return;
+  matchs=matchs.filter(m=>m.id!==id);
+  await pushCloud();renderMatchs();toast('Match supprimé');
+}
+
+// ─── US-21 : Pondération de performance ─────────────────────────────────────
+// Score de performance d'un joueur pour un match donné.
+// Titulaire sans sortie = 1.0 ; titulaire avec sortie = minute/90 ; remplaçant entrant = (90-minute)/90
+function pondMatch(m,playerId){
+  const isTit=m.titulaires&&m.titulaires.includes(playerId);
+  const sortie=m.changements?.find(ch=>ch.sortant===playerId);
+  const entree=m.changements?.find(ch=>ch.entrant===playerId);
+  if(isTit){
+    if(sortie)return Math.max(0,Math.min(1,(sortie.minute||90)/90));
+    return 1.0;
+  }
+  if(entree)return Math.max(0,Math.min(1,(90-(entree.minute||90))/90));
+  return 0;
+}
+
+// US-22 : Pondération cumulée d'un joueur sur N derniers matchs
+function pondCumul(playerId,n=10){
+  const recents=matchs.slice(0,n);
+  if(!recents.length)return 0;
+  const total=recents.reduce((sum,m)=>sum+pondMatch(m,playerId),0);
+  return total/recents.length;
+}
+
+// ─── US-23 : Recommandation composition optimale ─────────────────────────────
+// Score composite = pondération cumulée (40%) + note OVR normalisée (40%) + progression (20%)
+function scoreCompo(p){
+  const pond=pondCumul(p.id,10);
+  const ovrNorm=ovr(p)/100;
+  const prog=calcProg(p.id);
+  return pond*0.4+ovrNorm*0.4+prog*0.2;
+}
+
+function calcProg(pid){
+  const pev=evals.filter(e=>e.pid===pid).sort((a,b)=>a.month.localeCompare(b.month));
+  if(pev.length<2)return 0.5;
+  const last=pev[pev.length-1],prev=pev[pev.length-2];
+  const delta=((last.t+last.ta+last.p+last.m)-(prev.t+prev.ta+prev.p+prev.m))/4;
+  return Math.min(1,Math.max(0,0.5+delta/10));
+}
+
+function buildCompoOptimale(){
+  if(!players.length)return null;
+  const byPos={GK:[],DEF:[],MIL:[],ATT:[]};
+  players.forEach(p=>{
+    const pos=p.position?p.position.split('-')[0]:'MIL';
+    if(byPos[pos])byPos[pos].push({p,score:scoreCompo(p)});
+  });
+  Object.values(byPos).forEach(arr=>arr.sort((a,b)=>b.score-a.score));
+  const compo=[];
+  const quotas={GK:1,DEF:4,MIL:4,ATT:2};
+  Object.entries(quotas).forEach(([pos,n])=>{
+    (byPos[pos]||[]).slice(0,n).forEach(({p,score})=>compo.push({p,score,pos}));
+  });
+  return compo;
+}
+
+// ─── US-24 : Affichage / rendu ───────────────────────────────────────────────
+
+function renderMatchs(){
+  const count=matchs.length;
+  document.getElementById('matchs-count').textContent=`${count} match${count>1?'s':''} enregistré${count>1?'s':''}`;
+  // Stats
+  const wins=matchs.filter(m=>{const[a,b]=m.score.split('-').map(Number);return a>b;}).length;
+  const draws=matchs.filter(m=>{const[a,b]=m.score.split('-').map(Number);return a===b;}).length;
+  const losses=count-wins-draws;
+  const bf=matchs.reduce((s,m)=>s+(parseInt(m.score)||0),0);
+  const bc=matchs.reduce((s,m)=>{const[,b]=m.score.split('-').map(Number);return s+(b||0);},0);
+  document.getElementById('matchs-stats').innerHTML=`
+    <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${wins}</div><div class="stat-l">Victoires</div></div>
+    <div class="stat-box" style="border-left-color:#f6c90e"><div class="stat-n" style="color:#f6c90e">${draws}</div><div class="stat-l">Nuls</div></div>
+    <div class="stat-box" style="border-left-color:#fc8181"><div class="stat-n" style="color:#fc8181">${losses}</div><div class="stat-l">Défaites</div></div>
+    <div class="stat-box"><div class="stat-n">${bf}</div><div class="stat-l">Buts pour</div></div>
+    <div class="stat-box"><div class="stat-n">${bc}</div><div class="stat-l">Buts contre</div></div>
+  `;
+  // Composition optimale
+  renderCompoOptimale();
+  // Liste des matchs
+  const list=document.getElementById('matchs-list');
+  if(!count){list.innerHTML=`<div class="empty"><div class="empty-ico">⚽</div><h3>Aucun match</h3><p>Enregistrez votre premier match.</p></div>`;return;}
+  list.innerHTML=matchs.map(m=>renderMatchCard(m)).join('');
+}
+
+function matchResult(score){
+  const[a,b]=score.split('-').map(Number);
+  if(a>b)return'win';if(a===b)return'draw';return'loss';
+}
+function matchResultLabel(score){return{win:'Victoire',draw:'Nul',loss:'Défaite'}[matchResult(score)]||'';}
+
+function renderMatchCard(m){
+  const res=matchResult(m.score);
+  const resColor={win:'#68d391',draw:'#f6c90e',loss:'#fc8181'}[res];
+  const titNames=m.titulaires?.map(id=>{const p=players.find(x=>x.id===id);return p?`${p.prenom?p.prenom[0]+'.':''} ${p.nom}`:null;}).filter(Boolean).join(', ')||'—';
+  return`<div class="match-card" onclick="openMatchDetail('${m.id}')">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#e2e8f0">${m.adversaire}</div>
+        <div style="font-size:11px;color:#718096">${m.date||''} ${m.competition?'· '+m.competition:''} ${m.lieu==='ext'?'· Ext.':'· Dom.'}</div>
+      </div>
+      <div>
+        <div class="match-score ${res}">${m.score}</div>
+        <div style="text-align:center;font-size:10px;font-weight:700;color:${resColor}">${matchResultLabel(m.score)}</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#718096;line-height:1.5">👥 ${titNames.length>80?titNames.slice(0,80)+'…':titNames}</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-o btn-sm" onclick="event.stopPropagation();openMatchModal('${m.id}')">✏️</button>
+      <button class="btn btn-d btn-sm" onclick="event.stopPropagation();deleteMatch('${m.id}')">🗑</button>
+    </div>
+  </div>`;
+}
+
+function openMatchDetail(id){
+  const m=matchs.find(x=>x.id===id);if(!m)return;
+  const res=matchResult(m.score);
+  const resColor={win:'#68d391',draw:'#f6c90e',loss:'#fc8181'}[res];
+  const titulaires=(m.titulaires||[]).map(pid=>{
+    const p=players.find(x=>x.id===pid);if(!p)return null;
+    const pond=pondMatch(m,pid);
+    const ovrV=ovr(p);
+    const pos=p.position?p.position.split('-')[0]:'';
+    return`<div class="compo-slot titulaire"><span class="badge b-${pos}">${pos}</span><br>${p.prenom?p.prenom[0]+'.':''} ${p.nom}<br><span style="font-size:10px;color:#718096">OVR ${ovrV} · ${Math.round(pond*100)}%</span></div>`;
+  }).filter(Boolean);
+  const changements=(m.changements||[]).map(ch=>{
+    const pOut=players.find(x=>x.id===ch.sortant),pIn=players.find(x=>x.id===ch.entrant);
+    return`<div class="timeline-item">
+      <div class="timeline-min">${ch.minute}'</div>
+      <div><span style="color:#fc8181">⬇ ${pOut?pOut.nom:'?'}</span> → <span style="color:#68d391">⬆ ${pIn?pIn.nom:'?'}</span></div>
+    </div>`;
+  });
+  // Pondérations par groupe
+  const groups={GK:[],DEF:[],MIL:[],ATT:[]};
+  (m.titulaires||[]).forEach(pid=>{
+    const p=players.find(x=>x.id===pid);if(!p)return;
+    const pos=p.position?p.position.split('-')[0]:'MIL';
+    if(groups[pos])groups[pos].push(pondMatch(m,pid));
+  });
+  const pondHtml=Object.entries(groups).map(([pos,vals])=>{
+    if(!vals.length)return'';
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const pct=Math.round(avg*100);
+    const col=pct>=80?'#68d391':pct>=60?'#63b3ed':pct>=40?'#ed8936':'#fc8181';
+    return`<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span class="badge b-${pos}">${pos}</span><span style="font-weight:700;color:${col}">${pct}%</span></div>
+      <div class="pond-bar"><div class="pond-fill" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('detail-content').innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:24px;font-weight:900;color:#e2e8f0;margin-bottom:2px">vs ${m.adversaire}</div>
+      <div style="font-size:12px;color:#718096">${m.date||''} ${m.competition?'· '+m.competition:''} · ${m.lieu==='ext'?'Extérieur':'Domicile'}</div>
+      <div class="match-score ${res}" style="font-size:40px;margin:12px 0">${m.score}</div>
+      <div style="font-size:13px;font-weight:700;color:${resColor}">${matchResultLabel(m.score)}</div>
+    </div>
+    ${pondHtml?`<div class="section"><div class="section-title">📊 Pondération par groupe</div>${pondHtml}</div>`:''}
+    <div class="section"><div class="section-title">👥 Composition (${titulaires.length} titulaires)</div>
+      <div class="compo-pitch" style="grid-template-columns:repeat(${Math.min(4,titulaires.length||1)},1fr)">${titulaires.join('')||'<div style="color:#718096">—</div>'}</div>
+    </div>
+    ${changements.length?`<div class="section"><div class="section-title">🔄 Changements</div>${changements.join('')}</div>`:''}
+    ${m.notes?`<div class="section"><div class="section-title">📝 Notes</div><div style="font-size:13px;color:#e2e8f0;line-height:1.6">${m.notes}</div></div>`:''}
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-detail')">Fermer</button>
+      <button class="btn btn-p" onclick="closeModal('modal-detail');openMatchModal('${m.id}')">✏️ Modifier</button>
+    </div>
+  `;
+  openModal('modal-detail');
+}
+
+// US-23 + US-24 : Rendu composition optimale
+function renderCompoOptimale(){
+  const el=document.getElementById('compo-optimale-content');
+  if(!players.length){el.innerHTML='<div class="empty"><p>Ajoutez des joueurs pour générer une recommandation.</p></div>';return;}
+  const compo=buildCompoOptimale();
+  if(!compo||!compo.length){el.innerHTML='<div class="empty"><p>Données insuffisantes.</p></div>';return;}
+  const byPos={GK:[],DEF:[],MIL:[],ATT:[]};
+  compo.forEach(({p,score,pos})=>{if(byPos[pos])byPos[pos].push({p,score});});
+  const sections=['GK','DEF','MIL','ATT'].map(pos=>{
+    if(!byPos[pos]||!byPos[pos].length)return'';
+    return`<div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#718096;margin-bottom:6px">${pos}</div>
+      ${byPos[pos].map(({p,score})=>{
+        const pct=Math.round(score*100);
+        const pond=Math.round(pondCumul(p.id,10)*100);
+        const ovrV=ovr(p);
+        const col=pct>=70?'#68d391':pct>=55?'#63b3ed':'#ed8936';
+        return`<div class="reco-card" style="display:flex;align-items:center;gap:12px">
+          <div class="pc-av" style="flex-shrink:0">${(p.prenom||p.nom||'?')[0].toUpperCase()}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:#e2e8f0">${p.prenom?p.prenom+' ':''}${p.nom||'?'}</div>
+            <div style="font-size:11px;color:#718096">${p.position?p.position.split('-').slice(1).join(' '):'—'}</div>
+            <div class="pond-bar" style="margin-top:5px"><div class="pond-fill" style="width:${pct}%;background:${col}"></div></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="reco-score" style="color:${col}">${pct}<span style="font-size:12px">%</span></div>
+            <div style="font-size:10px;color:#718096">OVR ${ovrV} · Pond. ${pond}%</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div style="font-size:12px;color:#718096;margin-bottom:14px">Score composite = OVR (40%) + Présence match (40%) + Progression (20%) · ${matchs.length} match${matchs.length>1?'s':''} analysé${matchs.length>1?'s':''}</div>${sections}`;
+}
 
 // ═══════════════════════════════════════
 //  BOOT
