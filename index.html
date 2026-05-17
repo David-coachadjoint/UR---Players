@@ -746,7 +746,7 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
       </div>
       <div class="form-row">
         <div class="fg"><label class="fl">Type de terrain</label>
-          <select class="fs" id="m-terrain"><option value="">—</option><option value="herbe">🌿 Herbe naturelle</option><option value="synthétique">🔵 Synthétique</option><option value="indoor">🏟 Indoor</option></select>
+          <select class="fs" id="m-terrain"><option value="">—</option><option value="herbe">🌿 Herbe naturelle</option><option value="synthétique">🔵 Synthétique</option><option value="hybride">🔀 Hybride</option></select>
         </div>
         <div class="fg"><label class="fl">Météo</label>
           <select class="fs" id="m-meteo"><option value="">—</option><option value="beau">☀️ Beau temps</option><option value="nuageux">⛅ Nuageux</option><option value="pluie">🌧 Pluie</option><option value="vent">💨 Vent fort</option><option value="froid">🥶 Grand froid</option><option value="neige">❄️ Neige</option></select>
@@ -2653,7 +2653,7 @@ function openMatchDetail(id){
         ${m.competition?'· '+m.competition:''}
         ${m.formation?`<br>📐 <strong style="color:#e2e8f0">${m.formation}</strong>`:''}
         ${m.formation_adv?` vs <strong style="color:#718096">${m.formation_adv}</strong>`:''}
-        ${m.terrain||m.meteo?`<br>${{herbe:'🌿 Herbe',synthétique:'🔵 Synthétique',indoor:'🏟 Indoor'}[m.terrain]||''} ${m.meteo?{beau:'☀️ Beau temps',nuageux:'⛅ Nuageux',pluie:'🌧 Pluie',vent:'💨 Vent fort',froid:'🥶 Grand froid',neige:'❄️ Neige'}[m.meteo]||'':''}`:''}</div>
+        ${m.terrain||m.meteo?`<br>${{herbe:'🌿 Herbe',synthétique:'🔵 Synthétique',hybride:'🔀 Hybride'}[m.terrain]||''} ${m.meteo?{beau:'☀️ Beau temps',nuageux:'⛅ Nuageux',pluie:'🌧 Pluie',vent:'💨 Vent fort',froid:'🥶 Grand froid',neige:'❄️ Neige'}[m.meteo]||'':''}`:''}</div>
       <div class="match-score ${res}" style="font-size:40px;margin:12px 0">${m.score}</div>
       <div style="font-size:13px;font-weight:700;color:${resColor}">${matchResultLabel(m.score)}</div>
     </div>
