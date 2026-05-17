@@ -215,6 +215,22 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
 .rech-card{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:12px;padding:16px;margin-bottom:12px}
 .rech-card.conclue{border-color:rgba(104,211,145,.3);opacity:.85}
 
+/* MATCHS */
+.match-card{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+.match-card:hover{border-color:#63b3ed;transform:translateY(-2px)}
+.match-score{font-size:32px;font-weight:900;color:#fff;letter-spacing:2px;text-align:center;margin:6px 0}
+.match-score.win{color:#68d391}.match-score.draw{color:#f6c90e}.match-score.loss{color:#fc8181}
+.pond-bar{height:8px;border-radius:4px;margin:3px 0;position:relative;overflow:hidden;background:rgba(255,255,255,.07)}
+.pond-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.compo-pitch{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;background:rgba(14,26,46,.7);border-radius:10px;border:1px solid #2d4a7a;margin-bottom:12px}
+.compo-slot{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:8px;padding:8px 4px;text-align:center;font-size:11px}
+.compo-slot.titulaire{border-color:#68d391}.compo-slot.remplacant{border-color:#ed8936;opacity:.8}
+.reco-card{background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.2);border-radius:10px;padding:14px;margin-bottom:10px}
+.reco-score{font-size:22px;font-weight:900;color:#63b3ed}
+.timeline-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(45,74,122,.4)}
+.timeline-item:last-child{border:none}
+.timeline-min{min-width:36px;text-align:center;font-size:11px;font-weight:700;color:#f6c90e;padding-top:2px}
+
 /* RESPONSIVE */
 @media(max-width:640px){
   .form-row,.form-row-3{grid-template-columns:1fr}
@@ -289,6 +305,7 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     <button class="nav-tab" onclick="showPage('p-compare',this);renderCompare()">⚖️ Comparatif</button>
     <button class="nav-tab" onclick="showPage('p-eval',this);initEval()">📅 Évaluations</button>
     <button class="nav-tab" onclick="showPage('p-recrutement',this);renderRecrutement()">🎯 Recrutement</button>
+    <button class="nav-tab" onclick="showPage('p-matchs',this);renderMatchs()">⚽ Matchs</button>
     <button class="nav-tab" onclick="showPage('p-admin',this);renderAdmin()" id="tab-admin" style="display:none">🛡 Admin</button>
   </div>
 
@@ -381,6 +398,20 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     </div>
     <div class="stats-row" id="recr-stats"></div>
     <div id="recrutement-content"></div>
+  </div>
+
+  <!-- MATCHS -->
+  <div class="page" id="p-matchs">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:22px;font-weight:900;color:#fff">Matchs &amp; <span style="color:#63b3ed">Performances</span><div style="font-size:12px;color:#718096;font-weight:400" id="matchs-count">—</div></div>
+      <button class="btn btn-p" onclick="openMatchModal()">+ Nouveau match</button>
+    </div>
+    <div class="stats-row" id="matchs-stats"></div>
+    <div class="section">
+      <div class="section-title">🏅 Composition optimale recommandée</div>
+      <div id="compo-optimale-content"><div class="empty"><p>Enregistrez des matchs pour générer une recommandation.</p></div></div>
+    </div>
+    <div id="matchs-list"></div>
   </div>
 
   <!-- ADMIN -->
@@ -640,6 +671,45 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
   </div>
 </div>
 
+<!-- MODAL MATCH -->
+<div class="overlay" id="modal-match" onclick="closeModalOut(event,'modal-match')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-match')">✕</button>
+    <div class="modal-title" id="match-modal-title">Nouveau Match</div>
+    <div class="section"><div class="section-title">📋 Informations</div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="m-date"></div>
+        <div class="fg"><label class="fl">Adversaire *</label><input type="text" class="fi" id="m-adv" placeholder="ex: RFC Liège"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Nos buts</label><input type="number" class="fi" id="m-bg" min="0" value="0"></div>
+        <div class="fg"><label class="fl">Buts adverses</label><input type="number" class="fi" id="m-ba" min="0" value="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Domicile / Extérieur</label><select class="fs" id="m-lieu"><option value="dom">Domicile</option><option value="ext">Extérieur</option></select></div>
+        <div class="fg"><label class="fl">Compétition</label><input type="text" class="fi" id="m-comp" placeholder="ex: National 1 ACFF, Coupe…"></div>
+      </div>
+    </div>
+    <div class="section"><div class="section-title">👥 Composition de départ (11 max)</div>
+      <div class="fg"><label class="fl">Sélectionner les titulaires</label>
+        <div id="m-titulaires-grid" style="display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding:4px"></div>
+      </div>
+    </div>
+    <div class="section"><div class="section-title">🔄 Changements</div>
+      <div id="m-changements-list"></div>
+      <button class="btn btn-o btn-sm" onclick="addChangement()">+ Ajouter un changement</button>
+    </div>
+    <div class="section"><div class="section-title">📝 Notes de match</div>
+      <textarea class="fi" id="m-notes" rows="2" placeholder="Observations tactiques, incidents…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-match')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveMatch()">💾 Enregistrer</button>
+    </div>
+    <input type="hidden" id="m-edit-id">
+  </div>
+</div>
+
 <!-- MODAL PLAN D'ACTION -->
 <div class="overlay" id="modal-plan" onclick="closeModalOut(event,'modal-plan')">
   <div class="modal">
@@ -833,7 +903,7 @@ const TOUTES_COMPS=[
 // ═══════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════
-let players=[],evals=[],plans=[],cibles=[],recherches=[],acts=[],staffList=[],requests=[];
+let players=[],evals=[],plans=[],cibles=[],recherches=[],matchs=[],acts=[],staffList=[],requests=[];
 let CU=null,editId=null,posFilter='';
 let CFG={bin:'',key:''};
 const KS='ur6_sess',KD='ur6_data',KC='ur6_cfg';
@@ -898,7 +968,7 @@ async function syncCloud(){
     const d=await r.json();
     const prev=JSON.stringify(players);
     if(d.players)players=d.players;if(d.evaluations)evals=d.evaluations;
-    if(d.plans)plans=d.plans;if(d.cibles)cibles=d.cibles;if(d.recherches)recherches=d.recherches;if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
+    if(d.plans)plans=d.plans;if(d.cibles)cibles=d.cibles;if(d.recherches)recherches=d.recherches;if(d.matchs)matchs=d.matchs;if(d.staff)staffList=d.staff;if(d.requests)requests=d.requests;if(d.activity)acts=d.activity;
     saveLocal();setSyncOk();
     if(JSON.stringify(players)!==prev){renderDashboard();renderPlayers();initSelects();}
     if(CU?.isAdmin&&requests.filter(r=>r.status==='pending').length>0)document.getElementById('notif-dot').classList.add('show');
@@ -908,7 +978,7 @@ async function pushCloud(){
   if(!CFG.bin||!CFG.key){saveLocal();return false;}
   setSyncBusy();
   try{
-    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,plans,cibles,recherches,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
+    await fetch(`https://api.jsonbin.io/v3/b/${CFG.bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CFG.key,'X-Bin-Versioning':'false'},body:JSON.stringify({players,evaluations:evals,plans,cibles,recherches,matchs,staff:staffList,requests,activity:acts.slice(0,40),updatedAt:new Date().toISOString(),by:CU?.name||'?'})});
     saveLocal();setSyncOk();return true;
   }catch(e){setSyncErr();saveLocal();return false;}
 }
@@ -925,15 +995,15 @@ async function saveCfg(){
     if(!r.ok)throw new Error();
     const d=await r.json();
     if(!d.players||!d.players.length)await pushCloud();
-    else{players=d.players||[];evals=d.evaluations||[];plans=d.plans||[];cibles=d.cibles||[];recherches=d.recherches||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
+    else{players=d.players||[];evals=d.evaluations||[];plans=d.plans||[];cibles=d.cibles||[];recherches=d.recherches||[];matchs=d.matchs||[];staffList=d.staff||[];requests=d.requests||[];acts=d.activity||[];saveLocal();}
     box.innerHTML='<div class="cfg-status cfg-ok">✅ Connexion réussie ! Sauvegarde permanente active.</div>';
     renderDashboard();renderPlayers();initSelects();toast('✓ JSONBin connecté !');
   }catch(e){box.innerHTML='<div class="cfg-status cfg-err">❌ Erreur — vérifiez BIN ID et Master Key</div>';}
 }
 
 // LOCAL STORAGE
-function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,plans,cibles,recherches,acts,staffList,requests,ts:Date.now()}));}
-function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];plans=o.plans||[];cibles=o.cibles||[];recherches=o.recherches||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
+function saveLocal(){localStorage.setItem(KD,JSON.stringify({players,evals,plans,cibles,recherches,matchs,acts,staffList,requests,ts:Date.now()}));}
+function loadLocal(){try{const d=localStorage.getItem(KD);if(d){const o=JSON.parse(d);players=o.players||[];evals=o.evals||[];plans=o.plans||[];cibles=o.cibles||[];recherches=o.recherches||[];matchs=o.matchs||[];acts=o.acts||[];staffList=o.staffList||[];requests=o.requests||[];}}catch(e){}}
 
 // ═══════════════════════════════════════
 //  SCORING
@@ -2156,6 +2226,309 @@ function comparerCibles(rechercheId){
     <div class="btn-row"><button class="btn btn-o" onclick="closeModal('modal-detail')">Fermer</button></div>
   `;
   openModal('modal-detail');
+}
+
+// ═══════════════════════════════════════
+//  CHANTIER 4 — MATCHS & COMPOSITION OPTIMALE
+// ═══════════════════════════════════════
+
+// US-19 : Ouvrir le modal de création/édition de match
+function openMatchModal(id){
+  const m=id?matchs.find(x=>x.id===id):null;
+  document.getElementById('match-modal-title').textContent=m?'Modifier le match':'Nouveau Match';
+  document.getElementById('m-edit-id').value=m?m.id:'';
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('m-date').value=m?m.date:today;
+  document.getElementById('m-adv').value=m?m.adversaire:'';
+  document.getElementById('m-bg').value=m?(m.score?.split('-')[0]||0):0;
+  document.getElementById('m-ba').value=m?(m.score?.split('-')[1]||0):0;
+  document.getElementById('m-lieu').value=m?(m.lieu||'dom'):'dom';
+  document.getElementById('m-comp').value=m?(m.competition||''):'';
+  document.getElementById('m-notes').value=m?(m.notes||''):'';
+  // Grille titulaires
+  const grid=document.getElementById('m-titulaires-grid');
+  const sorted=[...players].sort((a,b)=>(a.nom||'').localeCompare(b.nom||''));
+  grid.innerHTML=sorted.map(p=>{
+    const sel=m&&m.titulaires&&m.titulaires.includes(p.id);
+    const pos=p.position?p.position.split('-')[0]:'';
+    return`<div class="comp-tag${sel?' sel':''}" data-pid="${p.id}" onclick="toggleTitulaire(this)" style="font-size:11px">
+      <span class="badge b-${pos}" style="font-size:8px">${pos}</span> ${p.prenom?p.prenom[0]+'.':''} ${p.nom||'?'}
+    </div>`;
+  }).join('');
+  // Changements
+  const clist=document.getElementById('m-changements-list');
+  clist.innerHTML='';
+  if(m&&m.changements){m.changements.forEach(ch=>addChangement(ch));}
+  openModal('modal-match');
+}
+
+function toggleTitulaire(el){
+  const sel=document.querySelectorAll('#m-titulaires-grid .comp-tag.sel');
+  if(!el.classList.contains('sel')&&sel.length>=11){toast('Maximum 11 titulaires');return;}
+  el.classList.toggle('sel');
+}
+
+// US-20 : Ajouter un changement entrant/sortant
+function addChangement(data){
+  const clist=document.getElementById('m-changements-list');
+  const idx=clist.children.length;
+  const playerOpts=players.map(p=>`<option value="${p.id}">${p.prenom?p.prenom[0]+'. ':''}${p.nom||'?'}</option>`).join('');
+  const div=document.createElement('div');
+  div.className='form-row';div.style.marginBottom='8px';div.setAttribute('data-ch',idx);
+  div.innerHTML=`
+    <div class="fg"><label class="fl">Sortant</label><select class="fs ch-out">${playerOpts}</select></div>
+    <div class="fg"><label class="fl">Entrant</label><select class="fs ch-in">${playerOpts}</select></div>
+    <div class="fg" style="max-width:90px"><label class="fl">Minute</label><input type="number" class="fi ch-min" min="1" max="120" value="${data?data.minute||60:60}"></div>
+    <div class="fg" style="max-width:36px;display:flex;align-items:flex-end;padding-bottom:2px"><button class="btn btn-d btn-sm" onclick="this.closest('[data-ch]').remove()">✕</button></div>
+  `;
+  if(data){
+    setTimeout(()=>{
+      const s=div.querySelector('.ch-out'),e=div.querySelector('.ch-in');
+      if(s)s.value=data.sortant||'';if(e)e.value=data.entrant||'';
+    },0);
+  }
+  clist.appendChild(div);
+}
+
+// Enregistrer un match
+async function saveMatch(){
+  const adv=document.getElementById('m-adv').value.trim();
+  if(!adv){toast('Renseignez l\'adversaire');return;}
+  const bg=parseInt(document.getElementById('m-bg').value)||0;
+  const ba=parseInt(document.getElementById('m-ba').value)||0;
+  const titulaires=[...document.querySelectorAll('#m-titulaires-grid .comp-tag.sel')].map(el=>el.dataset.pid);
+  const changements=[...document.querySelectorAll('#m-changements-list [data-ch]')].map(div=>({
+    sortant:div.querySelector('.ch-out')?.value||'',
+    entrant:div.querySelector('.ch-in')?.value||'',
+    minute:parseInt(div.querySelector('.ch-min')?.value)||60
+  })).filter(ch=>ch.sortant&&ch.entrant&&ch.sortant!==ch.entrant);
+  const editId=document.getElementById('m-edit-id').value;
+  const m={
+    id:editId||'m_'+Date.now(),
+    date:document.getElementById('m-date').value||new Date().toISOString().slice(0,10),
+    adversaire:adv,
+    score:`${bg}-${ba}`,
+    lieu:document.getElementById('m-lieu').value,
+    competition:document.getElementById('m-comp').value.trim(),
+    titulaires,
+    changements,
+    notes:document.getElementById('m-notes').value.trim(),
+    by:CU?.name||'?',
+    ts:new Date().toISOString()
+  };
+  if(editId){const i=matchs.findIndex(x=>x.id===editId);if(i>=0)matchs[i]=m;else matchs.unshift(m);}
+  else{matchs.unshift(m);}
+  await pushCloud();
+  closeModal('modal-match');renderMatchs();
+  toast('✓ Match enregistré');
+}
+
+async function deleteMatch(id){
+  if(!confirm('Supprimer ce match ?'))return;
+  matchs=matchs.filter(m=>m.id!==id);
+  await pushCloud();renderMatchs();toast('Match supprimé');
+}
+
+// ─── US-21 : Pondération de performance ─────────────────────────────────────
+// Score de performance d'un joueur pour un match donné.
+// Titulaire sans sortie = 1.0 ; titulaire avec sortie = minute/90 ; remplaçant entrant = (90-minute)/90
+function pondMatch(m,playerId){
+  const isTit=m.titulaires&&m.titulaires.includes(playerId);
+  const sortie=m.changements?.find(ch=>ch.sortant===playerId);
+  const entree=m.changements?.find(ch=>ch.entrant===playerId);
+  if(isTit){
+    if(sortie)return Math.max(0,Math.min(1,(sortie.minute||90)/90));
+    return 1.0;
+  }
+  if(entree)return Math.max(0,Math.min(1,(90-(entree.minute||90))/90));
+  return 0;
+}
+
+// US-22 : Pondération cumulée d'un joueur sur N derniers matchs
+function pondCumul(playerId,n=10){
+  const recents=matchs.slice(0,n);
+  if(!recents.length)return 0;
+  const total=recents.reduce((sum,m)=>sum+pondMatch(m,playerId),0);
+  return total/recents.length;
+}
+
+// ─── US-23 : Recommandation composition optimale ─────────────────────────────
+// Score composite = pondération cumulée (40%) + note OVR normalisée (40%) + progression (20%)
+function scoreCompo(p){
+  const pond=pondCumul(p.id,10);
+  const ovrNorm=ovr(p)/100;
+  const prog=calcProg(p.id);
+  return pond*0.4+ovrNorm*0.4+prog*0.2;
+}
+
+function calcProg(pid){
+  const pev=evals.filter(e=>e.pid===pid).sort((a,b)=>a.month.localeCompare(b.month));
+  if(pev.length<2)return 0.5;
+  const last=pev[pev.length-1],prev=pev[pev.length-2];
+  const delta=((last.t+last.ta+last.p+last.m)-(prev.t+prev.ta+prev.p+prev.m))/4;
+  return Math.min(1,Math.max(0,0.5+delta/10));
+}
+
+function buildCompoOptimale(){
+  if(!players.length)return null;
+  const byPos={GK:[],DEF:[],MIL:[],ATT:[]};
+  players.forEach(p=>{
+    const pos=p.position?p.position.split('-')[0]:'MIL';
+    if(byPos[pos])byPos[pos].push({p,score:scoreCompo(p)});
+  });
+  Object.values(byPos).forEach(arr=>arr.sort((a,b)=>b.score-a.score));
+  const compo=[];
+  const quotas={GK:1,DEF:4,MIL:4,ATT:2};
+  Object.entries(quotas).forEach(([pos,n])=>{
+    (byPos[pos]||[]).slice(0,n).forEach(({p,score})=>compo.push({p,score,pos}));
+  });
+  return compo;
+}
+
+// ─── US-24 : Affichage / rendu ───────────────────────────────────────────────
+
+function renderMatchs(){
+  const count=matchs.length;
+  document.getElementById('matchs-count').textContent=`${count} match${count>1?'s':''} enregistré${count>1?'s':''}`;
+  // Stats
+  const wins=matchs.filter(m=>{const[a,b]=m.score.split('-').map(Number);return a>b;}).length;
+  const draws=matchs.filter(m=>{const[a,b]=m.score.split('-').map(Number);return a===b;}).length;
+  const losses=count-wins-draws;
+  const bf=matchs.reduce((s,m)=>s+(parseInt(m.score)||0),0);
+  const bc=matchs.reduce((s,m)=>{const[,b]=m.score.split('-').map(Number);return s+(b||0);},0);
+  document.getElementById('matchs-stats').innerHTML=`
+    <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${wins}</div><div class="stat-l">Victoires</div></div>
+    <div class="stat-box" style="border-left-color:#f6c90e"><div class="stat-n" style="color:#f6c90e">${draws}</div><div class="stat-l">Nuls</div></div>
+    <div class="stat-box" style="border-left-color:#fc8181"><div class="stat-n" style="color:#fc8181">${losses}</div><div class="stat-l">Défaites</div></div>
+    <div class="stat-box"><div class="stat-n">${bf}</div><div class="stat-l">Buts pour</div></div>
+    <div class="stat-box"><div class="stat-n">${bc}</div><div class="stat-l">Buts contre</div></div>
+  `;
+  // Composition optimale
+  renderCompoOptimale();
+  // Liste des matchs
+  const list=document.getElementById('matchs-list');
+  if(!count){list.innerHTML=`<div class="empty"><div class="empty-ico">⚽</div><h3>Aucun match</h3><p>Enregistrez votre premier match.</p></div>`;return;}
+  list.innerHTML=matchs.map(m=>renderMatchCard(m)).join('');
+}
+
+function matchResult(score){
+  const[a,b]=score.split('-').map(Number);
+  if(a>b)return'win';if(a===b)return'draw';return'loss';
+}
+function matchResultLabel(score){return{win:'Victoire',draw:'Nul',loss:'Défaite'}[matchResult(score)]||'';}
+
+function renderMatchCard(m){
+  const res=matchResult(m.score);
+  const resColor={win:'#68d391',draw:'#f6c90e',loss:'#fc8181'}[res];
+  const titNames=m.titulaires?.map(id=>{const p=players.find(x=>x.id===id);return p?`${p.prenom?p.prenom[0]+'.':''} ${p.nom}`:null;}).filter(Boolean).join(', ')||'—';
+  return`<div class="match-card" onclick="openMatchDetail('${m.id}')">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#e2e8f0">${m.adversaire}</div>
+        <div style="font-size:11px;color:#718096">${m.date||''} ${m.competition?'· '+m.competition:''} ${m.lieu==='ext'?'· Ext.':'· Dom.'}</div>
+      </div>
+      <div>
+        <div class="match-score ${res}">${m.score}</div>
+        <div style="text-align:center;font-size:10px;font-weight:700;color:${resColor}">${matchResultLabel(m.score)}</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#718096;line-height:1.5">👥 ${titNames.length>80?titNames.slice(0,80)+'…':titNames}</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-o btn-sm" onclick="event.stopPropagation();openMatchModal('${m.id}')">✏️</button>
+      <button class="btn btn-d btn-sm" onclick="event.stopPropagation();deleteMatch('${m.id}')">🗑</button>
+    </div>
+  </div>`;
+}
+
+function openMatchDetail(id){
+  const m=matchs.find(x=>x.id===id);if(!m)return;
+  const res=matchResult(m.score);
+  const resColor={win:'#68d391',draw:'#f6c90e',loss:'#fc8181'}[res];
+  const titulaires=(m.titulaires||[]).map(pid=>{
+    const p=players.find(x=>x.id===pid);if(!p)return null;
+    const pond=pondMatch(m,pid);
+    const ovrV=ovr(p);
+    const pos=p.position?p.position.split('-')[0]:'';
+    return`<div class="compo-slot titulaire"><span class="badge b-${pos}">${pos}</span><br>${p.prenom?p.prenom[0]+'.':''} ${p.nom}<br><span style="font-size:10px;color:#718096">OVR ${ovrV} · ${Math.round(pond*100)}%</span></div>`;
+  }).filter(Boolean);
+  const changements=(m.changements||[]).map(ch=>{
+    const pOut=players.find(x=>x.id===ch.sortant),pIn=players.find(x=>x.id===ch.entrant);
+    return`<div class="timeline-item">
+      <div class="timeline-min">${ch.minute}'</div>
+      <div><span style="color:#fc8181">⬇ ${pOut?pOut.nom:'?'}</span> → <span style="color:#68d391">⬆ ${pIn?pIn.nom:'?'}</span></div>
+    </div>`;
+  });
+  // Pondérations par groupe
+  const groups={GK:[],DEF:[],MIL:[],ATT:[]};
+  (m.titulaires||[]).forEach(pid=>{
+    const p=players.find(x=>x.id===pid);if(!p)return;
+    const pos=p.position?p.position.split('-')[0]:'MIL';
+    if(groups[pos])groups[pos].push(pondMatch(m,pid));
+  });
+  const pondHtml=Object.entries(groups).map(([pos,vals])=>{
+    if(!vals.length)return'';
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const pct=Math.round(avg*100);
+    const col=pct>=80?'#68d391':pct>=60?'#63b3ed':pct>=40?'#ed8936':'#fc8181';
+    return`<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span class="badge b-${pos}">${pos}</span><span style="font-weight:700;color:${col}">${pct}%</span></div>
+      <div class="pond-bar"><div class="pond-fill" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('detail-content').innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:24px;font-weight:900;color:#e2e8f0;margin-bottom:2px">vs ${m.adversaire}</div>
+      <div style="font-size:12px;color:#718096">${m.date||''} ${m.competition?'· '+m.competition:''} · ${m.lieu==='ext'?'Extérieur':'Domicile'}</div>
+      <div class="match-score ${res}" style="font-size:40px;margin:12px 0">${m.score}</div>
+      <div style="font-size:13px;font-weight:700;color:${resColor}">${matchResultLabel(m.score)}</div>
+    </div>
+    ${pondHtml?`<div class="section"><div class="section-title">📊 Pondération par groupe</div>${pondHtml}</div>`:''}
+    <div class="section"><div class="section-title">👥 Composition (${titulaires.length} titulaires)</div>
+      <div class="compo-pitch" style="grid-template-columns:repeat(${Math.min(4,titulaires.length||1)},1fr)">${titulaires.join('')||'<div style="color:#718096">—</div>'}</div>
+    </div>
+    ${changements.length?`<div class="section"><div class="section-title">🔄 Changements</div>${changements.join('')}</div>`:''}
+    ${m.notes?`<div class="section"><div class="section-title">📝 Notes</div><div style="font-size:13px;color:#e2e8f0;line-height:1.6">${m.notes}</div></div>`:''}
+    <div class="btn-row">
+      <button class="btn btn-o" onclick="closeModal('modal-detail')">Fermer</button>
+      <button class="btn btn-p" onclick="closeModal('modal-detail');openMatchModal('${m.id}')">✏️ Modifier</button>
+    </div>
+  `;
+  openModal('modal-detail');
+}
+
+// US-23 + US-24 : Rendu composition optimale
+function renderCompoOptimale(){
+  const el=document.getElementById('compo-optimale-content');
+  if(!players.length){el.innerHTML='<div class="empty"><p>Ajoutez des joueurs pour générer une recommandation.</p></div>';return;}
+  const compo=buildCompoOptimale();
+  if(!compo||!compo.length){el.innerHTML='<div class="empty"><p>Données insuffisantes.</p></div>';return;}
+  const byPos={GK:[],DEF:[],MIL:[],ATT:[]};
+  compo.forEach(({p,score,pos})=>{if(byPos[pos])byPos[pos].push({p,score});});
+  const sections=['GK','DEF','MIL','ATT'].map(pos=>{
+    if(!byPos[pos]||!byPos[pos].length)return'';
+    return`<div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#718096;margin-bottom:6px">${pos}</div>
+      ${byPos[pos].map(({p,score})=>{
+        const pct=Math.round(score*100);
+        const pond=Math.round(pondCumul(p.id,10)*100);
+        const ovrV=ovr(p);
+        const col=pct>=70?'#68d391':pct>=55?'#63b3ed':'#ed8936';
+        return`<div class="reco-card" style="display:flex;align-items:center;gap:12px">
+          <div class="pc-av" style="flex-shrink:0">${(p.prenom||p.nom||'?')[0].toUpperCase()}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:#e2e8f0">${p.prenom?p.prenom+' ':''}${p.nom||'?'}</div>
+            <div style="font-size:11px;color:#718096">${p.position?p.position.split('-').slice(1).join(' '):'—'}</div>
+            <div class="pond-bar" style="margin-top:5px"><div class="pond-fill" style="width:${pct}%;background:${col}"></div></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="reco-score" style="color:${col}">${pct}<span style="font-size:12px">%</span></div>
+            <div style="font-size:10px;color:#718096">OVR ${ovrV} · Pond. ${pond}%</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div style="font-size:12px;color:#718096;margin-bottom:14px">Score composite = OVR (40%) + Présence match (40%) + Progression (20%) · ${matchs.length} match${matchs.length>1?'s':''} analysé${matchs.length>1?'s':''}</div>${sections}`;
 }
 
 // ═══════════════════════════════════════
