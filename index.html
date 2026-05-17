@@ -216,13 +216,15 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
 .rech-card.conclue{border-color:rgba(104,211,145,.3);opacity:.85}
 
 /* DATA */
-.qh-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-.qh-lbl{font-size:11px;color:#718096;width:55px;flex-shrink:0;text-align:right}
-.qh-track{flex:1;height:22px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
-.qh-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:11px;font-weight:700;color:#fff;min-width:4px;transition:width .4s ease}
-.data-tbl th{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#718096;padding:8px 10px;border-bottom:1px solid #2d4a7a;text-align:center}
-.data-tbl td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(45,74,122,.5);text-align:center}
-.data-tbl td:first-child{text-align:left}
+.qhv-chart{display:flex;gap:4px;align-items:flex-end;padding:0 2px}
+.qhv-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.qhv-lbl{font-size:9px;color:#718096;text-align:center;white-space:nowrap;margin-bottom:4px}
+.qhv-bars{display:flex;gap:2px;align-items:flex-end;height:90px;width:100%}
+.qhv-bar-ur{background:#63b3ed;border-radius:3px 3px 0 0;flex:1;transition:height .4s ease}
+.qhv-bar-enc{background:rgba(252,129,129,.65);border-radius:3px 3px 0 0;flex:1;transition:height .4s ease}
+.qhv-count{font-size:10px;text-align:center;margin-top:2px}
+.data-tbl th{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#718096;padding:8px 10px;border-bottom:1px solid #2d4a7a}
+.data-tbl td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(45,74,122,.5)}
 .data-tbl tr:last-child td{border:none}
 
 /* MATCHS */
@@ -456,19 +458,14 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
   <!-- DATA -->
   <div class="page" id="p-data">
     <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:16px">📊 <span style="color:#63b3ed">Data & Statistiques</span></div>
-    <div class="stats-row" id="data-global-stats"></div>
-    <div class="section">
-      <div class="section-title">⏱ Buts par quart d'heure</div>
-      <div id="data-quart-heure"><div class="empty"><p>Enregistrez des matchs avec les minutes de buts.</p></div></div>
-    </div>
-    <div class="section">
-      <div class="section-title">👤 Stats individuelles par compétition</div>
-      <div id="data-player-stats"><div class="empty"><p>Enregistrez des matchs pour voir les statistiques.</p></div></div>
-    </div>
-    <div class="section">
-      <div class="section-title">🔄 Impact des changements</div>
-      <div id="data-changements-impact"><div class="empty"><p>Les changements avec impact positif apparaîtront ici.</p></div></div>
-    </div>
+    <div class="section"><div class="section-title">📋 Bilan</div><div id="data-bilan"></div></div>
+    <div class="section"><div class="section-title">⚽ Buts</div><div id="data-buts"></div></div>
+    <div class="section"><div class="section-title">⏱ Buts cumulés par quart d'heure</div><div id="data-quart-heure"><div class="empty"><p>Enregistrez des matchs avec les minutes de buts.</p></div></div></div>
+    <div class="section"><div class="section-title">🏆 Top Buteurs &amp; Passeurs</div><div id="data-top-buteurs"></div></div>
+    <div class="section"><div class="section-title">⏰ Temps de jeu cumulé</div><div id="data-temps-jeu"></div></div>
+    <div class="section"><div class="section-title">🏠 Performance Domicile vs Extérieur</div><div id="data-dom-ext"></div></div>
+    <div class="section"><div class="section-title">🔄 Impact des remplaçants</div><div id="data-impact-rempl"></div></div>
+    <div class="section"><div class="section-title">👤 Stats par joueur &amp; compétition</div><div id="data-player-stats"><div class="empty"><p>Enregistrez des matchs pour voir les statistiques.</p></div></div></div>
   </div>
 
   <!-- ADMIN -->
@@ -2911,64 +2908,246 @@ function calcPlayerStats(pid,type){
 }
 
 function renderData(){
-  // Stats globales
-  const totalMatchs=matchs.length;
-  const totalButs=matchs.reduce((s,m)=>{const[a]=m.score.split('-').map(Number);return s+a;},0);
-  const totalButsC=matchs.reduce((s,m)=>{const[,b]=m.score.split('-').map(Number);return s+(b||0);},0);
-  const totalTJ=players.reduce((s,p)=>s+calcTempsjeu(p.id),0);
-  document.getElementById('data-global-stats').innerHTML=`
-    <div class="stat-box"><div class="stat-n">${totalMatchs}</div><div class="stat-l">Matchs</div></div>
-    <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${totalButs}</div><div class="stat-l">Buts pour</div></div>
-    <div class="stat-box" style="border-left-color:#fc8181"><div class="stat-n" style="color:#fc8181">${totalButsC}</div><div class="stat-l">Buts contre</div></div>
-    <div class="stat-box" style="border-left-color:#a78bfa"><div class="stat-n" style="color:#a78bfa">${totalTJ}</div><div class="stat-l">Min. de jeu (total)</div></div>
-  `;
-  renderQuartHeure();
-  renderPlayerStatsTable();
-  renderChangementsImpact();
-}
+  if(!matchs.length){
+    ['data-bilan','data-buts','data-quart-heure','data-top-buteurs','data-temps-jeu','data-dom-ext','data-impact-rempl','data-player-stats'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.innerHTML='<div class="empty"><p>Aucun match enregistré.</p></div>';
+    });
+    return;
+  }
+  const n=matchs.length;
+  let w=0,d=0,l=0,bf=0,bc=0,cs=0;
+  matchs.forEach(m=>{
+    const parts=(m.score||'0-0').split('-').map(s=>parseInt(s,10)||0);
+    const a=parts[0]||0,b=parts[1]||0;
+    bf+=a;bc+=b;
+    if(a>b)w++;else if(a===b)d++;else l++;
+    if(b===0)cs++;
+  });
+  const pts=w*3+d;
+  const ppm=n?+(pts/n).toFixed(2):0;
+  const diff=bf-bc;
+  const bpm=n?+(bf/n).toFixed(2):0;
+  renderBilan(w,d,l,pts,ppm,n);
+  renderButsStats(bf,bc,diff,cs,bpm);
 
-function renderQuartHeure(){
+  // Quart d'heure
   const labels=['0-15','15-30','30-45','45-60','60-75','75-90+'];
   const ranges=[[0,15],[15,30],[30,45],[45,60],[60,75],[75,90]];
   const pour=new Array(6).fill(0),contre=new Array(6).fill(0);
   matchs.forEach(m=>{
     (m.buteurs||[]).forEach(b=>{
-      const min=b.minute||0;
+      const min=+(b.minute||0);
       const i=ranges.findIndex(([a,e])=>min>=a&&min<e);
       pour[i>=0?i:5]++;
     });
-    (m.buts_contre_mins||[]).forEach(min=>{
+    (m.buts_contre_mins||[]).forEach(raw=>{
+      const min=+raw||0;
       const i=ranges.findIndex(([a,e])=>min>=a&&min<e);
       contre[i>=0?i:5]++;
     });
   });
   const maxV=Math.max(...pour,...contre,1);
-  const rowsPour=labels.map((l,i)=>`<div class="qh-bar-row">
-    <div class="qh-lbl">${l}'</div>
-    <div class="qh-track"><div class="qh-fill" style="width:${Math.max(pour[i]/maxV*100,pour[i]>0?4:0)}%;background:#68d391">${pour[i]>0?pour[i]:''}</div></div>
-  </div>`).join('');
-  const rowsContre=labels.map((l,i)=>`<div class="qh-bar-row">
-    <div class="qh-lbl">${l}'</div>
-    <div class="qh-track"><div class="qh-fill" style="width:${Math.max(contre[i]/maxV*100,contre[i]>0?4:0)}%;background:#fc8181">${contre[i]>0?contre[i]:''}</div></div>
-  </div>`).join('');
-  document.getElementById('data-quart-heure').innerHTML=`
-    <div class="form-row" style="gap:24px">
-      <div><div style="font-size:12px;font-weight:700;color:#68d391;margin-bottom:10px">⚽ Buts marqués</div>${rowsPour}</div>
-      <div><div style="font-size:12px;font-weight:700;color:#fc8181;margin-bottom:10px">🔴 Buts encaissés</div>${rowsContre}</div>
-    </div>
-  `;
-}
+  const fortIdx=pour.indexOf(Math.max(...pour));
+  const faibIdx=contre.indexOf(Math.max(...contre));
+  renderVerticalQH(labels,pour,contre,maxV,fortIdx,faibIdx);
 
-function renderPlayerStatsTable(){
-  const types=['amical','championnat','coupe'];
-  const labels={amical:'🤝 Amical',championnat:'🏆 Champ.',coupe:'🏅 Coupe'};
+  // Top buteurs & passeurs
+  const butsMap={},assistsMap={};
+  matchs.forEach(m=>{
+    (m.buteurs||[]).forEach(b=>{if(b.pid)butsMap[b.pid]=(butsMap[b.pid]||0)+1;});
+    (m.assists||[]).forEach(a=>{if(a.pid)assistsMap[a.pid]=(assistsMap[a.pid]||0)+1;});
+  });
+  const getName=pid=>{const p=players.find(x=>x.id===pid);return p?(p.prenom?p.prenom[0]+'. ':'')+p.nom:'?';};
+  const topButeurs=Object.entries(butsMap).map(([pid,v])=>({pid,v,name:getName(pid)})).sort((a,b)=>b.v-a.v).slice(0,5);
+  const topAssists=Object.entries(assistsMap).map(([pid,v])=>({pid,v,name:getName(pid)})).sort((a,b)=>b.v-a.v).slice(0,5);
+  const decisifs={};
+  [...Object.keys(butsMap),...Object.keys(assistsMap)].forEach(pid=>{decisifs[pid]=(butsMap[pid]||0)+(assistsMap[pid]||0);});
+  const topDecisifs=Object.entries(decisifs).map(([pid,v])=>({pid,v,name:getName(pid)})).sort((a,b)=>b.v-a.v).slice(0,3);
+  renderTopButeursSection(topButeurs,topAssists,topDecisifs);
+
+  // Temps de jeu
   const activePids=new Set();
   matchs.forEach(m=>{
     (m.titulaires||[]).forEach(id=>activePids.add(id));
-    (m.changements||[]).forEach(ch=>{if(ch.entrant)activePids.add(ch.entrant);});
+    (m.changements||[]).forEach(ch=>{if(ch.entrant)activePids.add(ch.entrant);if(ch.sortant)activePids.add(ch.sortant);});
     (m.buteurs||[]).forEach(b=>{if(b.pid)activePids.add(b.pid);});
     (m.assists||[]).forEach(a=>{if(a.pid)activePids.add(a.pid);});
   });
+  const tjList=players.filter(p=>activePids.has(p.id)).map(p=>{
+    const tps=calcTempsjeu(p.id);
+    const pos=p.position?p.position.split('-')[0]:'';
+    return{name:(p.prenom?p.prenom[0]+'. ':'')+p.nom,pos,tps};
+  }).filter(x=>x.tps>0).sort((a,b)=>b.tps-a.tps);
+  renderTempsJeuTable(tjList,n);
+
+  // Dom vs Ext
+  const domM=matchs.filter(m=>m.lieu==='domicile');
+  const extM=matchs.filter(m=>m.lieu==='exterieur'||m.lieu==='extérieur');
+  const calcScore=list=>{
+    let sw=0,sd=0,sl=0,sbf=0,sbc=0;
+    list.forEach(m=>{
+      const p=(m.score||'0-0').split('-').map(s=>parseInt(s,10)||0);
+      const a=p[0]||0,b=p[1]||0;
+      sbf+=a;sbc+=b;
+      if(a>b)sw++;else if(a===b)sd++;else sl++;
+    });
+    return{n:list.length,w:sw,d:sd,l:sl,bf:sbf,bc:sbc,pts:sw*3+sd};
+  };
+  renderDomExtStats(calcScore(domM),calcScore(extM));
+
+  // Impact remplaçants
+  let totalChg=0,butsApr=0,encApr=0;
+  matchs.forEach(m=>{
+    const chgs=(m.changements||[]).filter(ch=>ch.entrant);
+    totalChg+=chgs.length;
+    chgs.forEach(ch=>{
+      const minChg=+(ch.minute||90);
+      (m.buteurs||[]).forEach(b=>{if(b.pid===ch.entrant&&+(b.minute||0)>=minChg)butsApr++;});
+      (m.buts_contre_mins||[]).forEach(raw=>{if(+raw>=minChg)encApr++;});
+    });
+  });
+  renderImpactRempl(totalChg,butsApr,encApr);
+
+  renderPlayerStatsTable(activePids);
+}
+
+function renderBilan(w,d,l,pts,ppm,n){
+  document.getElementById('data-bilan').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${w}</div><div class="stat-l">Victoires</div></div>
+      <div class="stat-box" style="border-left-color:#f6c90e"><div class="stat-n" style="color:#f6c90e">${d}</div><div class="stat-l">Nuls</div></div>
+      <div class="stat-box" style="border-left-color:#fc8181"><div class="stat-n" style="color:#fc8181">${l}</div><div class="stat-l">Défaites</div></div>
+      <div class="stat-box" style="border-left-color:#63b3ed"><div class="stat-n" style="color:#63b3ed">${pts}</div><div class="stat-l">Points</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#a0aec0">
+      <span>📅 ${n} match${n>1?'s':''}</span>
+      <span>·</span>
+      <span style="color:#63b3ed;font-weight:700">${ppm} pts/match</span>
+    </div>`;
+}
+
+function renderButsStats(bf,bc,diff,cs,bpm){
+  const diffColor=diff>0?'#68d391':diff<0?'#fc8181':'#a0aec0';
+  document.getElementById('data-buts').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+      <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${bf}</div><div class="stat-l">Buts pour</div></div>
+      <div class="stat-box" style="border-left-color:#fc8181"><div class="stat-n" style="color:#fc8181">${bc}</div><div class="stat-l">Buts contre</div></div>
+      <div class="stat-box" style="border-left-color:${diffColor}"><div class="stat-n" style="color:${diffColor}">${diff>0?'+':''}${diff}</div><div class="stat-l">Différentiel</div></div>
+      <div class="stat-box" style="border-left-color:#a78bfa"><div class="stat-n" style="color:#a78bfa">${cs}</div><div class="stat-l">Clean sheets</div></div>
+      <div class="stat-box" style="border-left-color:#63b3ed"><div class="stat-n" style="color:#63b3ed">${bpm}</div><div class="stat-l">Buts/match</div></div>
+    </div>`;
+}
+
+function renderVerticalQH(labels,pour,contre,maxV,fortIdx,faibIdx){
+  const cols=labels.map((lbl,i)=>{
+    const hP=pour[i]?Math.max(Math.round(pour[i]/maxV*80),6):0;
+    const hC=contre[i]?Math.max(Math.round(contre[i]/maxV*80),6):0;
+    const isBest=i===fortIdx&&pour[i]>0;
+    const isWeak=i===faibIdx&&contre[i]>0;
+    return`<div class="qhv-col">
+      <div class="qhv-bars">
+        <div class="qhv-bar-ur" style="height:${hP}px" title="Buts marqués: ${pour[i]}"></div>
+        <div class="qhv-bar-enc" style="height:${hC}px" title="Buts encaissés: ${contre[i]}"></div>
+      </div>
+      <div class="qhv-count">
+        ${pour[i]>0?`<span style="color:#63b3ed">${pour[i]}</span>`:'<span style="color:#4a5568">0</span>'}
+        <span style="color:#718096">/</span>
+        ${contre[i]>0?`<span style="color:#fc8181">${contre[i]}</span>`:'<span style="color:#4a5568">0</span>'}
+      </div>
+      <div class="qhv-lbl">${lbl}'${isBest?' ⚡':''}${isWeak?' ⚠':''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('data-quart-heure').innerHTML=`
+    <div class="qhv-chart">${cols}</div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:11px;color:#a0aec0">
+      <span><span style="display:inline-block;width:10px;height:10px;background:#63b3ed;border-radius:2px;margin-right:4px"></span>Buts marqués</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:rgba(252,129,129,.65);border-radius:2px;margin-right:4px"></span>Buts encaissés</span>
+    </div>`;
+}
+
+function renderTopButeursSection(topButeurs,topAssists,topDecisifs){
+  const mkRow=(item,i,colorKey)=>{
+    const colors=['#f6c90e','#a0aec0','#cd7f32','#63b3ed','#63b3ed'];
+    return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(45,74,122,.3)">
+      <span style="font-weight:700;font-size:13px;color:${colors[i]||'#63b3ed'};width:18px;text-align:center">${i+1}</span>
+      <span style="flex:1;font-size:13px">${item.name}</span>
+      <span style="font-weight:700;font-size:15px;color:${colorKey}">${item.v}</span>
+    </div>`;
+  };
+  const emptyRow='<div style="padding:8px 0;color:#718096;font-size:12px">Aucune donnée</div>';
+  document.getElementById('data-top-buteurs').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#68d391;margin-bottom:8px">⚽ Top Buteurs</div>
+        ${topButeurs.length?topButeurs.map((x,i)=>mkRow(x,i,'#68d391')).join(''):emptyRow}
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#63b3ed;margin-bottom:8px">🎯 Top Passeurs</div>
+        ${topAssists.length?topAssists.map((x,i)=>mkRow(x,i,'#63b3ed')).join(''):emptyRow}
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:8px">⭐ Joueurs décisifs (B+PD)</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      ${topDecisifs.length?topDecisifs.map((x,i)=>`
+        <div style="flex:1;min-width:100px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#a78bfa">${x.v}</div>
+          <div style="font-size:11px;color:#a0aec0;margin-top:2px">${x.name}</div>
+          <div style="font-size:10px;color:#718096">#${i+1} décisif</div>
+        </div>`).join(''):'<div style="color:#718096;font-size:12px">Aucune donnée</div>'}
+    </div>`;
+}
+
+function renderTempsJeuTable(tjList,n){
+  const maxTps=tjList.length?tjList[0].tps:1;
+  const rows=tjList.map((x,i)=>`
+    <tr>
+      <td style="color:#718096;font-size:11px">${i+1}</td>
+      <td><span class="badge b-${x.pos}" style="font-size:9px">${x.pos||'?'}</span> ${x.name}</td>
+      <td style="min-width:100px">
+        <div style="background:rgba(99,179,237,.15);border-radius:4px;height:8px;overflow:hidden">
+          <div style="height:100%;background:#63b3ed;border-radius:4px;width:${Math.round(x.tps/maxTps*100)}%"></div>
+        </div>
+      </td>
+      <td style="font-weight:700;color:#63b3ed;white-space:nowrap">${x.tps}'</td>
+      <td style="color:#718096;font-size:11px">${n?Math.round(x.tps/n)+'&#8239;moy':''}</td>
+    </tr>`).join('');
+  document.getElementById('data-temps-jeu').innerHTML=tjList.length?`
+    <div class="table-wrap"><table class="data-tbl">
+      <thead><tr><th>#</th><th style="text-align:left">Joueur</th><th></th><th>Total</th><th>Moy/match</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`:'<div class="empty"><p>Aucune donnée de temps de jeu.</p></div>';
+}
+
+function renderDomExtStats(domS,extS){
+  const box=(s,label,color)=>`
+    <div style="flex:1;background:rgba(45,74,122,.25);border-radius:10px;padding:14px">
+      <div style="font-size:13px;font-weight:700;color:${color};margin-bottom:10px">${label}</div>
+      <div style="font-size:22px;font-weight:700;color:#e2e8f0;margin-bottom:4px">${s.n} match${s.n>1?'s':''}</div>
+      <div style="display:flex;gap:12px;font-size:13px;margin-bottom:6px">
+        <span style="color:#68d391">V ${s.w}</span>
+        <span style="color:#f6c90e">N ${s.d}</span>
+        <span style="color:#fc8181">D ${s.l}</span>
+      </div>
+      <div style="font-size:12px;color:#a0aec0">⚽ ${s.bf} pour · ${s.bc} contre</div>
+      <div style="font-size:12px;color:#63b3ed;margin-top:4px">${s.n?+(s.pts/s.n).toFixed(2):0} pts/match</div>
+    </div>`;
+  document.getElementById('data-dom-ext').innerHTML=`
+    <div style="display:flex;gap:12px">${box(domS,'🏠 Domicile','#63b3ed')}${box(extS,'✈ Extérieur','#a78bfa')}</div>`;
+}
+
+function renderImpactRempl(total,buts,enc){
+  document.getElementById('data-impact-rempl').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div class="stat-box" style="border-left-color:#63b3ed"><div class="stat-n" style="color:#63b3ed">${total}</div><div class="stat-l">Remplacements</div></div>
+      <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${buts}</div><div class="stat-l">Buts après entrée</div></div>
+      <div class="stat-box" style="border-left-color:#fc8181"><div class="stat-n" style="color:#fc8181">${enc}</div><div class="stat-l">Buts enc. après chgt</div></div>
+    </div>`;
+}
+
+function renderPlayerStatsTable(activePids){
+  if(!activePids)activePids=new Set();
+  const types=['amical','championnat','coupe'];
+  const labels={amical:'🤝 Amical',championnat:'🏆 Champ.',coupe:'🏅 Coupe'};
   const active=players.filter(p=>activePids.has(p.id)).sort((a,b)=>{
     const ta=calcPlayerStats(a.id).buts,tb=calcPlayerStats(b.id).buts;
     return tb-ta;
@@ -2994,31 +3173,6 @@ function renderPlayerStatsTable(){
     </table></div>
     <div style="font-size:11px;color:#718096;margin-top:6px">B = Buts · PD = Passes décisives · TJ = Temps de jeu (min)</div>
   `;
-}
-
-function renderChangementsImpact(){
-  const impacts=[];
-  matchs.forEach(m=>{
-    (m.changements||[]).forEach(ch=>{
-      if(ch.impact==='oui'){
-        const pIn=players.find(x=>x.id===ch.entrant),pOut=players.find(x=>x.id===ch.sortant);
-        impacts.push({match:m,ch,pIn,pOut});
-      }
-    });
-  });
-  if(!impacts.length){document.getElementById('data-changements-impact').innerHTML='<div class="empty"><p>Aucun changement avec impact positif enregistré.</p></div>';return;}
-  document.getElementById('data-changements-impact').innerHTML=impacts.map(({match:m,ch,pIn,pOut})=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(45,74,122,.4)">
-      <div class="timeline-min">${ch.minute}'</div>
-      <div style="flex:1">
-        <span style="color:#fc8181">⬇ ${pOut?pOut.nom:'?'}</span>
-        <span style="color:#718096"> → </span>
-        <span style="color:#68d391">⬆ ${pIn?pIn.nom:'?'}</span>
-        <span style="color:#68d391;font-weight:700;margin-left:6px">✅ Impact positif</span>
-      </div>
-      <div style="font-size:11px;color:#718096">${m.adversaire} · ${m.date||''}</div>
-    </div>
-  `).join('');
 }
 
 // ═══════════════════════════════════════
