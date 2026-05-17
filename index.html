@@ -1114,6 +1114,11 @@ function catAvg(p,sk){const v=sk.map(s=>p.skills?.[s.id]||0);return(v.reduce((a,
 function ovrColor(s){return s>=75?'#68d391':s>=60?'#ed8936':s>=45?'#63b3ed':'#fc8181';}
 function barColor(v){return v>=8?'#68d391':v>=6?'#63b3ed':v>=4?'#ed8936':'#fc8181';}
 function barColorADN(v){return v>=7.5?'#68d391':v>=6?'#63b3ed':v>=4.5?'#ed8936':'#fc8181';}
+function evalAverage(e){return(e.t+e.ta+e.p+e.m)/4;}
+function calcTeamAverages(playerList,skills){return skills.map(s=>({lb:s.lb,id:s.id,avg:playerList.reduce((a,p)=>a+(p.skills?.[s.id]||0),0)/playerList.length})).sort((a,b)=>b.avg-a.avg);}
+function calcMissingProfiles(playerList){const dist={GK:0,DEF:0,MIL:0,ATT:0};playerList.forEach(p=>{if(dist[p.posGroup]!==undefined)dist[p.posGroup]++;});return Object.entries(CIBLES_POSTE).filter(([k,v])=>dist[k]<v).map(([k,v])=>({poste:k,actual:dist[k],cible:v,manque:v-dist[k]}));}
+function parseScore(scoreStr){const[home,away]=scoreStr.split('-').map(Number);return{home:home||0,away:away||0};}
+function matchResultStats(matchList){let wins=0,draws=0,losses=0,goalsFor=0,goalsAgainst=0;matchList.forEach(m=>{const{home,away}=parseScore(m.score||'0-0');goalsFor+=home;goalsAgainst+=away;if(home>away)wins++;else if(home===away)draws++;else losses++;});return{wins,draws,losses,goalsFor,goalsAgainst};}
 
 // ═══════════════════════════════════════
 //  NAVIGATION
@@ -1218,14 +1223,14 @@ function openAddPlayer(){
   openModal('modal-player');
 }
 
-async function savePlayer(){
+function buildPlayerFromForm(){
   const nom=document.getElementById('p-nom').value.trim();
   const prenom=document.getElementById('p-pre').value.trim();
-  if(!nom||!prenom){toast('⚠ Nom et prénom sont obligatoires');return;}
+  if(!nom||!prenom)return null;
   const skills={};
   ALL_SK.forEach(s=>{const e=document.getElementById('sk-'+s.id);if(e)skills[s.id]=parseInt(e.value);});
   const pos=document.getElementById('p-pos').value;
-  const player={
+  return{
     id:editId||('p_'+Date.now()),nom,prenom,
     age:parseInt(document.getElementById('p-age').value)||null,
     taille:parseInt(document.getElementById('p-tai').value)||null,
@@ -1250,14 +1255,18 @@ async function savePlayer(){
     createdAt:editId?(players.find(x=>x.id===editId)||{}).createdAt||new Date().toISOString():new Date().toISOString(),
     updatedAt:new Date().toISOString()
   };
+}
+async function savePlayer(){
+  const player=buildPlayerFromForm();
+  if(!player){toast('⚠ Nom et prénom sont obligatoires');return;}
   if(editId){const i=players.findIndex(x=>x.id===editId);if(i>=0)players[i]=player;}
   else players.push(player);
-  addAct(editId?'a modifié':'a ajouté',`${prenom} ${nom}`);
+  addAct(editId?'a modifié':'a ajouté',`${player.prenom} ${player.nom}`);
   closeModal('modal-player');
   renderDashboard();renderPlayers();initSelects();
   toast('⏫ Synchronisation…');
   const ok=await pushCloud();
-  toast(ok?`✓ ${prenom} ${nom} sauvegardé définitivement`:`✓ ${prenom} ${nom} sauvegardé localement`);
+  toast(ok?`✓ ${player.prenom} ${player.nom} sauvegardé définitivement`:`✓ ${player.prenom} ${player.nom} sauvegardé localement`);
 }
 
 async function deletePlayer(id){
@@ -1497,11 +1506,7 @@ function renderADN(){
     {name:'Attributs Mentaux',icon:'🧠',sk:SKM,col:'#f6c90e'},
   ];
 
-  // Calcul des moyennes
-  const allAvgs=ALL_SK.map(s=>({
-    lb:s.lb,id:s.id,
-    avg:players.reduce((a,p)=>a+(p.skills?.[s.id]||0),0)/players.length
-  })).sort((a,b)=>b.avg-a.avg);
+  const allAvgs=calcTeamAverages(players,ALL_SK);
 
   const forces=allAvgs.slice(0,5);
   const lacunes=[...allAvgs].sort((a,b)=>a.avg-b.avg).slice(0,5);
@@ -1524,7 +1529,8 @@ function renderADN(){
   const style=calcStyleJeu();
   const posteDist={GK:0,DEF:0,MIL:0,ATT:0};
   players.forEach(p=>{if(posteDist[p.posGroup]!==undefined)posteDist[p.posGroup]++;});
-  const manqPoste=Object.entries(CIBLES_POSTE).filter(([k,v])=>posteDist[k]<v).map(([k,v])=>({poste:k,actual:posteDist[k],cible:v,manque:v-posteDist[k]}));
+  const manqPosteRaw=calcMissingProfiles(players);
+  const manqPoste=manqPosteRaw.map(m=>({poste:m.poste,actual:m.actual,cible:m.cible,manque:m.manque}));
   const surPoste=Object.entries(CIBLES_POSTE).filter(([k,v])=>posteDist[k]>v).map(([k,v])=>({poste:k,actual:posteDist[k],cible:v,surplus:posteDist[k]-v}));
   const pColors={GK:'#ed8936',DEF:'#63b3ed',MIL:'#68d391',ATT:'#fc8181'};
   const pNames={GK:'Gardiens',DEF:'Défenseurs',MIL:'Milieux',ATT:'Attaquants'};
@@ -1575,7 +1581,7 @@ function renderADN(){
 
   <!-- Analyse par catégorie -->
   ${cats.map(cat=>{
-    const catAvgs=cat.sk.map(s=>({lb:s.lb,avg:players.reduce((a,p)=>a+(p.skills?.[s.id]||0),0)/players.length})).sort((a,b)=>b.avg-a.avg);
+    const catAvgs=calcTeamAverages(players,cat.sk);
     const catOvr=(catAvgs.reduce((a,s)=>a+s.avg,0)/catAvgs.length).toFixed(1);
     return`<div class="adn-section">
       <div class="section-title">${cat.icon} ${cat.name} — Moyenne équipe : <span style="color:${cat.col}">${catOvr}/10</span></div>
@@ -1757,15 +1763,21 @@ function renderEvalHist(){
   const sorted=[...evals].sort((a,b)=>b.month.localeCompare(a.month));
   if(!sorted.length){el.innerHTML='<div style="color:#718096;font-size:13px;padding:8px 0">Aucune évaluation.</div>';return;}
   el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Joueur</th><th>Mois</th><th>T</th><th>Ta</th><th>P</th><th>M</th><th>Moy</th><th>Staff</th><th>Note</th></tr></thead><tbody>
-  ${sorted.map(e=>{const p=players.find(x=>x.id===e.pid);const avg=((e.t+e.ta+e.p+e.m)/4).toFixed(1);return`<tr><td><strong>${p?p.prenom+' '+p.nom:'—'}</strong></td><td style="font-family:monospace;font-size:11px;color:#63b3ed">${e.month}</td><td>${e.t}</td><td>${e.ta}</td><td>${e.p}</td><td>${e.m}</td><td><strong style="color:#f6c90e;font-size:16px">${avg}</strong></td><td style="color:#718096;font-size:11px">${e.by||'—'}</td><td style="color:#718096;font-size:11px;font-style:italic">${e.note||'—'}</td></tr>`;}).join('')}
+  ${sorted.map(e=>{const p=players.find(x=>x.id===e.pid);const avg=evalAverage(e).toFixed(1);return`<tr><td><strong>${p?p.prenom+' '+p.nom:'—'}</strong></td><td style="font-family:monospace;font-size:11px;color:#63b3ed">${e.month}</td><td>${e.t}</td><td>${e.ta}</td><td>${e.p}</td><td>${e.m}</td><td><strong style="color:#f6c90e;font-size:16px">${avg}</strong></td><td style="color:#718096;font-size:11px">${e.by||'—'}</td><td style="color:#718096;font-size:11px;font-style:italic">${e.note||'—'}</td></tr>`;}).join('')}
   </tbody></table></div>`;
 }
-async function saveEval(){
+function buildEvalFromForm(){
   const pid=document.getElementById('ev-player').value,month=document.getElementById('ev-month').value;
-  if(!pid||!month){toast('⚠ Sélectionnez un joueur et un mois');return;}
+  if(!pid||!month)return null;
   const p=players.find(x=>x.id===pid);
   const skillsSnap=p?{...(p.skills||{})}:{};
-  evals.push({id:'ev_'+Date.now(),pid,month,t:+document.getElementById('ev-t').value,ta:+document.getElementById('ev-ta').value,p:+document.getElementById('ev-p').value,m:+document.getElementById('ev-m').value,note:document.getElementById('ev-note').value.trim(),by:CU.name,ts:new Date().toISOString(),skills:skillsSnap});
+  return{id:'ev_'+Date.now(),pid,month,t:+document.getElementById('ev-t').value,ta:+document.getElementById('ev-ta').value,p:+document.getElementById('ev-p').value,m:+document.getElementById('ev-m').value,note:document.getElementById('ev-note').value.trim(),by:CU.name,ts:new Date().toISOString(),skills:skillsSnap};
+}
+async function saveEval(){
+  const ev=buildEvalFromForm();
+  if(!ev){toast('⚠ Sélectionnez un joueur et un mois');return;}
+  const p=players.find(x=>x.id===ev.pid);
+  evals.push(ev);
   addAct('a évalué',p?`${p.prenom} ${p.nom}`:'');
   const ok=await pushCloud();renderEvalHist();renderDashboard();renderEvalAlerts();renderEvalProg();document.getElementById('ev-note').value='';
   toast(ok?'✓ Évaluation sauvegardée définitivement':'✓ Évaluation sauvegardée localement');
@@ -1780,7 +1792,7 @@ function exportPDF(id){
   const profilCfg=p.profil?PROFILS[p.profil]:null;
   const comps=p.profilComps?p.profilComps.split(',').filter(Boolean):[];
   const pe=evals.filter(e=>e.pid===id).sort((a,b)=>b.month.localeCompare(a.month));
-  const le=pe[0];const avgEv=le?((le.t+le.ta+le.p+le.m)/4).toFixed(1):'—';
+  const le=pe[0];const avgEv=le?evalAverage(le).toFixed(1):'—';
   const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport ${p.prenom} ${p.nom}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;padding:28px;max-width:850px;margin:0 auto;font-size:13px}
 .hdr{background:linear-gradient(135deg,#0A1628,#1B3A6B);color:#fff;padding:24px;border-radius:10px;margin-bottom:18px}.hdr h1{font-size:24px;font-weight:900;letter-spacing:2px}.hdr p{font-size:12px;opacity:.7;margin-top:4px}
@@ -1812,7 +1824,7 @@ ${p.profil?`<div class="sec"><h3>🏷 Profil du Joueur — ${p.profil}</h3>
 <div class="sec"><h3>🧠 Attributs Mentaux</h3>${SKM.map(s=>{const v=p.skills?.[s.id]||0;return`<div class="br"><div class="brl">${s.lb}</div><div class="brt"><div class="brf" style="width:${v*10}%;background:${v>=8?'#16a34a':v>=6?'#2563eb':v>=4?'#d97706':'#dc2626'}"></div></div><div class="brv">${v}</div></div>`;}).join('')}</div>
 ${(p.stats_m||p.gps_dist)?`<div class="sec"><h3>📊 Stats & GPS</h3><div class="g4">${[p.stats_m?`<div class="st"><div class="n">${p.stats_m}</div><div class="l">Matches</div></div>`:'',p.stats_b?`<div class="st"><div class="n" style="color:#16a34a">${p.stats_b}</div><div class="l">Buts</div></div>`:'',p.stats_a?`<div class="st"><div class="n" style="color:#d97706">${p.stats_a}</div><div class="l">Assists</div></div>`:'',p.gps_dist?`<div class="st"><div class="n">${p.gps_dist}</div><div class="l">km/match</div></div>`:'',p.gps_vmax?`<div class="st"><div class="n">${p.gps_vmax}</div><div class="l">Vmax km/h</div></div>`:''].filter(Boolean).join('')}</div></div>`:''}
 ${(p.forces||p.progres)?`<div class="sec"><h3>📝 Analyse Staff</h3>${p.forces?`<p style="margin-bottom:8px;font-size:13px"><strong style="color:#16a34a">Forces :</strong> ${p.forces}</p>`:''} ${p.progres?`<p style="font-size:13px"><strong style="color:#d97706">Progression :</strong> ${p.progres}</p>`:''}</div>`:''}
-${pe.length?`<div class="sec"><h3>📅 Évaluations (${pe.length})</h3><table><thead><tr><th>Mois</th><th>Technique</th><th>Tactique</th><th>Physique</th><th>Mental</th><th>Moy.</th><th>Staff</th></tr></thead><tbody>${pe.slice(0,6).map(e=>{const avg=((e.t+e.ta+e.p+e.m)/4).toFixed(1);return`<tr><td><strong>${e.month}</strong></td><td>${e.t}</td><td>${e.ta}</td><td>${e.p}</td><td>${e.m}</td><td><strong style="color:#2557a7;font-size:16px">${avg}</strong></td><td style="color:#64748b">${e.by||'—'}</td></tr>`;}).join('')}</tbody></table></div>`:''}
+${pe.length?`<div class="sec"><h3>📅 Évaluations (${pe.length})</h3><table><thead><tr><th>Mois</th><th>Technique</th><th>Tactique</th><th>Physique</th><th>Mental</th><th>Moy.</th><th>Staff</th></tr></thead><tbody>${pe.slice(0,6).map(e=>{const avg=evalAverage(e).toFixed(1);return`<tr><td><strong>${e.month}</strong></td><td>${e.t}</td><td>${e.ta}</td><td>${e.p}</td><td>${e.m}</td><td><strong style="color:#2557a7;font-size:16px">${avg}</strong></td><td style="color:#64748b">${e.by||'—'}</td></tr>`;}).join('')}</tbody></table></div>`:''}
 <div class="ft">Rapport généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})} par ${CU.name} · ${CU.role} · Union Rochefortoise · Scout DB</div>
 <script>window.onload=()=>window.print();<\/script></body></html>`;
   const win=window.open('','_blank');
@@ -1875,9 +1887,9 @@ function renderProgHTML(pid){
   // Timeline des évaluations
   let html='<div class="prog-row">';
   pe.forEach((e,i)=>{
-    const avg=((e.t+e.ta+e.p+e.m)/4).toFixed(1);
+    const avg=evalAverage(e).toFixed(1);
     const prevE=i>0?pe[i-1]:null;
-    const prevAvg=prevE?((prevE.t+prevE.ta+prevE.p+prevE.m)/4):null;
+    const prevAvg=prevE?evalAverage(prevE):null;
     const delta=prevAvg!=null?(parseFloat(avg)-prevAvg).toFixed(1):null;
     const dCol=delta===null?'':delta>0?'#68d391':delta<0?'#fc8181':'#718096';
     const dTxt=delta===null?'':delta>0?`+${delta}`:delta;
@@ -2096,7 +2108,7 @@ function renderRecrutement(){
 function renderCibleCard(c){
   const init=(c.prenom?c.prenom[0]:'?')+(c.nom?c.nom[0]:'?');
   const lastObs=[...c.observations].sort((a,b)=>b.date.localeCompare(a.date))[0];
-  const avgScore=lastObs?((lastObs.t+lastObs.ta+lastObs.p+lastObs.m)/4).toFixed(1):null;
+  const avgScore=lastObs?evalAverage(lastObs).toFixed(1):null;
   return`<div class="player-card" onclick="openCibleDetail('${c.id}')">
     <div class="pc-top">
       <div class="pc-av" style="background:linear-gradient(135deg,#1a2a5e,#553c9a)">${init}</div>
@@ -2208,7 +2220,7 @@ function openCibleDetail(id){
   const r=c.rechercheId?recherches.find(x=>x.id===c.rechercheId):null;
   const init=(c.prenom?c.prenom[0]:'?')+(c.nom?c.nom[0]:'?');
   const obs=[...c.observations].sort((a,b)=>b.date.localeCompare(a.date));
-  const lastAvg=obs.length?((obs[0].t+obs[0].ta+obs[0].p+obs[0].m)/4).toFixed(1):null;
+  const lastAvg=obs.length?evalAverage(obs[0]).toFixed(1):null;
   document.getElementById('detail-content').innerHTML=`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2d4a7a">
       <div class="pc-av" style="width:54px;height:54px;font-size:20px;background:linear-gradient(135deg,#1a2a5e,#553c9a)">${init}</div>
@@ -2235,7 +2247,7 @@ function openCibleDetail(id){
     </div>`:''}
     <div class="section" style="margin-bottom:12px"><div class="section-title">📋 Observations (${obs.length})</div>
       ${obs.length?obs.map(o=>{
-        const avg=((o.t+o.ta+o.p+o.m)/4).toFixed(1);
+        const avg=evalAverage(o).toFixed(1);
         return`<div style="padding:10px 0;border-bottom:1px solid rgba(45,74,122,.5)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
             <span style="font-size:11px;color:#63b3ed;font-family:monospace">${o.date}</span>
@@ -2322,7 +2334,7 @@ function comparerCibles(rechercheId){
       const keys=['t','ta','p','m'];
       rows.push({label:lb,vals:linked.map(c=>{const o=getObs(c);return o?o[keys[i]].toString():'—';})});
     });
-    rows.push({label:'Moyenne',vals:linked.map(c=>{const o=getObs(c);return o?((o.t+o.ta+o.p+o.m)/4).toFixed(1):'—';})});
+    rows.push({label:'Moyenne',vals:linked.map(c=>{const o=getObs(c);return o?evalAverage(o).toFixed(1):'—';})});
   }
   document.getElementById('detail-content').innerHTML=`
     <div style="margin-bottom:16px">
@@ -2551,11 +2563,11 @@ function calcProg(pid){
   const pev=evals.filter(e=>e.pid===pid).sort((a,b)=>a.month.localeCompare(b.month));
   if(pev.length<2)return 0.5;
   const last=pev[pev.length-1],prev=pev[pev.length-2];
-  const delta=((last.t+last.ta+last.p+last.m)-(prev.t+prev.ta+prev.p+prev.m))/4;
+  const delta=evalAverage(last)-evalAverage(prev);
   return Math.min(1,Math.max(0,0.5+delta/10));
 }
 
-function buildCompoOptimale(){
+function buildCompoOptimale(players,matchs,evals){
   if(!players.length)return null;
   const byPos={GK:[],DEF:[],MIL:[],ATT:[]};
   players.forEach(p=>{
@@ -2577,11 +2589,7 @@ function renderMatchs(){
   const count=matchs.length;
   document.getElementById('matchs-count').textContent=`${count} match${count>1?'s':''} enregistré${count>1?'s':''}`;
   // Stats
-  const wins=matchs.filter(m=>{const[a,b]=m.score.split('-').map(Number);return a>b;}).length;
-  const draws=matchs.filter(m=>{const[a,b]=m.score.split('-').map(Number);return a===b;}).length;
-  const losses=count-wins-draws;
-  const bf=matchs.reduce((s,m)=>s+(parseInt(m.score)||0),0);
-  const bc=matchs.reduce((s,m)=>{const[,b]=m.score.split('-').map(Number);return s+(b||0);},0);
+  const{wins,draws,losses,goalsFor:bf,goalsAgainst:bc}=matchResultStats(matchs);
   document.getElementById('matchs-stats').innerHTML=`
     <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${wins}</div><div class="stat-l">Victoires</div></div>
     <div class="stat-box" style="border-left-color:#f6c90e"><div class="stat-n" style="color:#f6c90e">${draws}</div><div class="stat-l">Nuls</div></div>
@@ -2598,7 +2606,7 @@ function renderMatchs(){
 }
 
 function matchResult(score){
-  const[a,b]=score.split('-').map(Number);
+  const{home:a,away:b}=parseScore(score);
   if(a>b)return'win';if(a===b)return'draw';return'loss';
 }
 function matchResultLabel(score){return{win:'Victoire',draw:'Nul',loss:'Défaite'}[matchResult(score)]||'';}
@@ -2703,7 +2711,7 @@ function openMatchDetail(id){
 function renderCompoOptimale(){
   const el=document.getElementById('compo-optimale-content');
   if(!players.length){el.innerHTML='<div class="empty"><p>Ajoutez des joueurs pour générer une recommandation.</p></div>';return;}
-  const compo=buildCompoOptimale();
+  const compo=buildCompoOptimale(players,matchs,evals);
   if(!compo||!compo.length){el.innerHTML='<div class="empty"><p>Données insuffisantes.</p></div>';return;}
   const byPos={GK:[],DEF:[],MIL:[],ATT:[]};
   compo.forEach(({p,score,pos})=>{if(byPos[pos])byPos[pos].push({p,score});});
@@ -2807,7 +2815,7 @@ async function deleteNote(id){
 
 function printMatchReport(mid){
   const m=matchs.find(x=>x.id===mid);if(!m)return;
-  const[bg,ba]=m.score.split('-').map(Number);
+  const{home:bg,away:ba}=parseScore(m.score);
   const res=bg>ba?'Victoire':bg===ba?'Nul':'Défaite';
   const resColor=bg>ba?'#16a34a':bg===ba?'#d97706':'#dc2626';
   const typeLabel={championnat:'🏆 Championnat',coupe:'🏅 Coupe',amical:'🤝 Amical'}[m.competition_type]||'';
