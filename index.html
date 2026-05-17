@@ -604,42 +604,71 @@ const ALL_SK=[...SKT,...SKP,...SKM];
 // ═══════════════════════════════════════
 const STYLES_JEU=[
   {id:'transition',label:'Transition rapide',emoji:'⚡',color:'#fc8181',
-   test:a=>a.phys>=6.5&&a.vit>=6&&a.tech<6.5,
-   desc:'Équipe verticale et explosive — contre-attaque rapide, exploitation des espaces en profondeur.',
-   train:['Transitions défense→attaque (3v2, 4v3 avec finition)','Pressing haut et déclenchement de la récupération haute','Répétitions de finition en contre-attaque et appels en profondeur']},
-  {id:'possession',label:'Possession / Combinaisons',emoji:'🔄',color:'#63b3ed',
-   test:a=>a.tech>=6.5&&a.vis>=6&&a.dist>=6,
-   desc:'Équipe technique et combinatoire — circulation du ballon, construction depuis l\'arrière, jeu positionnel.',
-   train:['Rondos et possession courte (4v2, 5v2, 6v3)','Sorties de balle organisées et relances sous pression','Pressing collectif et contre-pressing après perte']},
-  {id:'direct',label:'Jeu direct / Physique',emoji:'💪',color:'#68d391',
-   test:a=>a.phys>=6.5&&a.force>=6&&a.tech<6,
-   desc:'Équipe physiquement dominante — duels aériens, seconds ballons, jeu long sur les attaquants de référence.',
-   train:['Secondes balles et duels aériens (ateliers spécifiques)','Jeu en zone de finition et fixation d\'adversaires','Pressing agressif et reconquête physique après perte']},
-  {id:'mental',label:'Bloc tactique / Mental',emoji:'🧠',color:'#f6c90e',
-   test:a=>a.ment>=6.5&&a.intel>=6,
-   desc:'Équipe tactiquement solide et résiliente — bloc compact, lecture collective, gestion des situations de match.',
-   train:['Blocs défensifs et scénarios de score (mener, égalisation, résister)','Jeux de position sous contrainte mentale et arbitrage','Cohésion, communication et préparation mentale collective']},
-  {id:'equilibre',label:'Profil équilibré',emoji:'⚖️',color:'#a78bfa',
-   test:()=>true,
-   desc:'Pas de dominante marquée — équipe adaptable tactiquement mais sans identité de jeu forte. Opportunité de construire un style clair.',
-   train:['Définir et travailler une identité de jeu par la répétition','Renforcer les 2-3 points forts existants du groupe','Travailler les transitions pour créer des automatismes collectifs']}
+   poids:{vitesse:3,explosivite:3,percussion:2,prise_risque:2,finition:1,mise_danger:1},
+   adn:['Attaque rapidement après récupération','Verticalité maximale','Exploite les déséquilibres adverses','Peu de touches — courses profondes'],
+   forces:['Très dangereuse sur pertes adverses','Efficace émotionnellement','Crée beaucoup d\'occasions en peu de possession'],
+   faiblesses:['Peut souffrir face à un bloc bas','Dépend des espaces libres'],
+   train:['Transitions défense→attaque (3v2, 4v3 avec finition)','Appels en profondeur et exploitation des espaces libérés','Pressing pour provoquer les erreurs et relancer vite']},
+  {id:'possession',label:'Possession / Domination',emoji:'🔄',color:'#63b3ed',
+   poids:{technique:3,distribution:3,precision:2,concentration:2,position:1},
+   adn:['Contrôle du ballon et du rythme','Domination territoriale','Fatigue l\'adversaire par circulation','Supériorités numériques construites'],
+   forces:['Contrôle total du match','Réduit les transitions adverses','Crée des décalages structurés'],
+   faiblesses:['Exposée sur les pertes de balle','Demande une grande qualité technique collective'],
+   train:['Rondos et possession courte sous pression (4v2, 5v2, 6v3)','Sorties de balle organisées et relances courtes','Pressing collectif et contre-pressing immédiat après perte']},
+  {id:'pressing',label:'Pressing intense',emoji:'🔥',color:'#ed8936',
+   poids:{rigueur:3,recuperation:3,endurance:3,attitude:2,explosivite:1},
+   adn:['Récupérer haut et vite','Étouffer l\'adversaire dès sa sortie de balle','Contre-pressing immédiat','Jouer avec intensité émotionnelle'],
+   forces:['Force des erreurs adverses','Récupérations en zone dangereuse','Domination énergétique du match'],
+   faiblesses:['Très exigeant physiquement','Risque dans la profondeur si pressing contourné'],
+   train:['Pressing organisé par zones et déclenchement collectif','Contre-pressing immédiat — règle des 5 secondes','Gestion de l\'intensité et récupération active entre exercices']},
+  {id:'positionnel',label:'Jeu positionnel',emoji:'♟',color:'#68d391',
+   poids:{intel_t:3,position:3,vision:2,decision:2,creativite:1},
+   adn:['Occupation rationnelle des espaces','Création d\'avantages positionnels','Jeu entre les lignes','Fixe puis déséquilibre'],
+   forces:['Désorganise les blocs adverses','Contrôle spatial du terrain','Création structurée et reproductible'],
+   faiblesses:['Complexe à enseigner et maintenir','Dépend fortement de l\'intelligence tactique collective'],
+   train:['Jeux de position avec lignes et zones définies','Exercices de fixation-déséquilibre et permutations','Automatismes entre lignes et lecture collective']},
+  {id:'direct',label:'Jeu direct / Physique',emoji:'💪',color:'#f6c90e',
+   poids:{force:3,robustesse:2,endurance:2,finition:2,recup_p:1},
+   adn:['Aller vite vers l\'avant','Longs ballons ciblés et seconds ballons','Centres rapides — duels aériens','Recherche rapide de la zone de vérité'],
+   forces:['Très difficile à gérer physiquement','Dangereuse sur les standards et les duels aériens'],
+   faiblesses:['Peut subir territorialement','Dépend des duels gagnés'],
+   train:['Secondes balles et duels aériens (ateliers spécifiques)','Jeu long ciblé — réception et fixation d\'attaquant','Centres et finitions en un ou deux touches']},
+  {id:'relationnel',label:'Jeu relationnel / Associatif',emoji:'🔗',color:'#a78bfa',
+   poids:{distribution:2,technique:2,creativite:3,decision:2,vision:2,precision:1},
+   adn:['Créer des connexions courtes','Attirer puis éliminer la pression','Nombreux triangles','Utiliser les relations entre joueurs'],
+   forces:['Sortie de balle très forte','Crée des espaces internes','Joueurs techniques en haute confiance'],
+   faiblesses:['Risque élevé proche de son but','Demande des joueurs très techniques et disciplinés'],
+   train:['Triangles et combinaisons courtes sous pression intensive','Fixation de pressing et déviation en une touche','Sortie de balle en zone défensive avec règles de jeu']},
+  {id:'defensif',label:'Bloc défensif / Bloc bas',emoji:'🛡',color:'#718096',
+   poids:{position:3,rigueur:2,sang_froid:3,concentration:2,resilience:2},
+   adn:['Fermer les espaces','Défendre la zone de vérité','Bloc compact à faible hauteur défensive','Punir en transition'],
+   forces:['Très difficile à déséquilibrer','Excellente gestion émotionnelle des moments clés'],
+   faiblesses:['Subit souvent la possession adverse','Dépend de l\'efficacité offensive sur peu d\'occasions'],
+   train:['Travail défensif en bloc bas — organisation et compacité axiale','Scénarios de gestion de score (mener, résister, égaliser)','Transitions défense→attaque efficaces sur peu d\'espace']},
+  {id:'hybride',label:'Hybride moderne',emoji:'🌀',color:'#b794f4',
+   poids:{},
+   adn:['Capable de changer de registre','Alterne possession, pressing et transition','Structures flexibles selon adversaire','Variations de rythme dans le match'],
+   forces:['Imprévisible pour l\'adversaire','Adaptable tactiquement en cours de match'],
+   faiblesses:['Complexité organisationnelle élevée','Demande une forte culture tactique collective'],
+   train:['Variations de rythme et changement de registre à l\'entraînement','Multiples organisations selon la phase de jeu','Lecture des situations et prise de décision collective rapide']}
 ];
 
 const CIBLES_POSTE={GK:2,DEF:7,MIL:8,ATT:5};
 
 function calcStyleJeu(){
-  if(!players.length)return STYLES_JEU[STYLES_JEU.length-1];
+  if(!players.length)return STYLES_JEU.find(s=>s.id==='hybride');
   const n=players.length;
-  const sk=ids=>ids.reduce((s,id)=>s+players.reduce((a,p)=>a+(p.skills?.[id]||0),0)/n,0)/ids.length;
-  const a={
-    tech:sk(SKT.map(s=>s.id)),phys:sk(SKP.map(s=>s.id)),ment:sk(SKM.map(s=>s.id)),
-    vit:players.reduce((s,p)=>s+(p.skills?.vitesse||0),0)/n,
-    force:players.reduce((s,p)=>s+(p.skills?.force||0),0)/n,
-    vis:players.reduce((s,p)=>s+(p.skills?.vision||0),0)/n,
-    dist:players.reduce((s,p)=>s+(p.skills?.distribution||0),0)/n,
-    intel:players.reduce((s,p)=>s+(p.skills?.intel_t||0),0)/n
-  };
-  return STYLES_JEU.find(s=>s.test(a))||STYLES_JEU[STYLES_JEU.length-1];
+  const skillAvgs={};
+  ALL_SK.forEach(s=>{skillAvgs[s.id]=players.reduce((a,p)=>a+(p.skills?.[s.id]||0),0)/n;});
+  const scored=STYLES_JEU.filter(s=>s.id!=='hybride').map(s=>{
+    const ids=Object.keys(s.poids);
+    const total=Object.values(s.poids).reduce((a,b)=>a+b,0);
+    const score=ids.reduce((sum,id)=>sum+(skillAvgs[id]||0)*s.poids[id],0)/total;
+    return{s,score};
+  }).sort((a,b)=>b.score-a.score);
+  const best=scored[0],second=scored[1];
+  if(best.score<5.0||(second&&best.score-second.score<0.25))return STYLES_JEU.find(s=>s.id==='hybride');
+  return best.s;
 }
 
 // ═══════════════════════════════════════
@@ -1228,10 +1257,22 @@ function renderADN(){
   <div class="adn-section" style="border-left:4px solid ${style.color}">
     <div class="section-title">🎮 Style de Jeu Dominant</div>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-      <div style="font-size:42px;line-height:1">${style.emoji}</div>
-      <div>
-        <div style="font-size:18px;font-weight:900;color:${style.color}">${style.label}</div>
-        <div style="font-size:12px;color:#718096;margin-top:5px;line-height:1.6">${style.desc}</div>
+      <div style="font-size:48px;line-height:1;text-align:center;min-width:56px">${style.emoji}</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:900;color:${style.color}">${style.label}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+          ${style.adn.map(a=>`<span style="background:${style.color}18;border:1px solid ${style.color}44;color:${style.color};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${a}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:rgba(104,211,145,.06);border:1px solid rgba(104,211,145,.2);border-radius:8px;padding:11px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#68d391;margin-bottom:8px">✅ Points forts</div>
+        ${style.forces.map(f=>`<div style="font-size:12px;color:#718096;padding:3px 0 3px 8px;border-left:2px solid #68d391;margin-bottom:5px;line-height:1.4">${f}</div>`).join('')}
+      </div>
+      <div style="background:rgba(252,129,129,.06);border:1px solid rgba(252,129,129,.2);border-radius:8px;padding:11px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fc8181;margin-bottom:8px">⚠ Faiblesses</div>
+        ${style.faiblesses.map(f=>`<div style="font-size:12px;color:#718096;padding:3px 0 3px 8px;border-left:2px solid #fc8181;margin-bottom:5px;line-height:1.4">${f}</div>`).join('')}
       </div>
     </div>
     <div style="background:rgba(255,255,255,.03);border:1px solid #2d4a7a;border-radius:8px;padding:12px">
