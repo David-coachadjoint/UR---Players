@@ -215,6 +215,16 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
 .rech-card{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:12px;padding:16px;margin-bottom:12px}
 .rech-card.conclue{border-color:rgba(104,211,145,.3);opacity:.85}
 
+/* DATA */
+.qh-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.qh-lbl{font-size:11px;color:#718096;width:55px;flex-shrink:0;text-align:right}
+.qh-track{flex:1;height:22px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
+.qh-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:11px;font-weight:700;color:#fff;min-width:4px;transition:width .4s ease}
+.data-tbl th{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#718096;padding:8px 10px;border-bottom:1px solid #2d4a7a;text-align:center}
+.data-tbl td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(45,74,122,.5);text-align:center}
+.data-tbl td:first-child{text-align:left}
+.data-tbl tr:last-child td{border:none}
+
 /* MATCHS */
 .match-card{background:#1a2d4e;border:1px solid #2d4a7a;border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s}
 .match-card:hover{border-color:#63b3ed;transform:translateY(-2px)}
@@ -306,6 +316,7 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     <button class="nav-tab" onclick="showPage('p-eval',this);initEval()">📅 Évaluations</button>
     <button class="nav-tab" onclick="showPage('p-recrutement',this);renderRecrutement()">🎯 Recrutement</button>
     <button class="nav-tab" onclick="showPage('p-matchs',this);renderMatchs()">⚽ Matchs</button>
+    <button class="nav-tab" onclick="showPage('p-data',this);renderData()">📊 Data</button>
     <button class="nav-tab" onclick="showPage('p-admin',this);renderAdmin()" id="tab-admin" style="display:none">🛡 Admin</button>
   </div>
 
@@ -412,6 +423,24 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
       <div id="compo-optimale-content"><div class="empty"><p>Enregistrez des matchs pour générer une recommandation.</p></div></div>
     </div>
     <div id="matchs-list"></div>
+  </div>
+
+  <!-- DATA -->
+  <div class="page" id="p-data">
+    <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:16px">📊 <span style="color:#63b3ed">Data & Statistiques</span></div>
+    <div class="stats-row" id="data-global-stats"></div>
+    <div class="section">
+      <div class="section-title">⏱ Buts par quart d'heure</div>
+      <div id="data-quart-heure"><div class="empty"><p>Enregistrez des matchs avec les minutes de buts.</p></div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">👤 Stats individuelles par compétition</div>
+      <div id="data-player-stats"><div class="empty"><p>Enregistrez des matchs pour voir les statistiques.</p></div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">🔄 Impact des changements</div>
+      <div id="data-changements-impact"><div class="empty"><p>Les changements avec impact positif apparaîtront ici.</p></div></div>
+    </div>
   </div>
 
   <!-- ADMIN -->
@@ -686,8 +715,55 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
         <div class="fg"><label class="fl">Buts adverses</label><input type="number" class="fi" id="m-ba" min="0" value="0"></div>
       </div>
       <div class="form-row">
+        <div class="fg"><label class="fl">Type</label>
+          <select class="fs" id="m-type"><option value="championnat">🏆 Championnat</option><option value="coupe">🏅 Coupe</option><option value="amical">🤝 Amical</option></select>
+        </div>
         <div class="fg"><label class="fl">Domicile / Extérieur</label><select class="fs" id="m-lieu"><option value="dom">Domicile</option><option value="ext">Extérieur</option></select></div>
-        <div class="fg"><label class="fl">Compétition</label><input type="text" class="fi" id="m-comp" placeholder="ex: National 1 ACFF, Coupe…"></div>
+      </div>
+      <div class="fg"><label class="fl">Nom de la compétition</label><input type="text" class="fi" id="m-comp" placeholder="ex: National 1 ACFF…"></div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Notre formation</label>
+          <select class="fs" id="m-formation">
+            <option value="">— Sélectionner —</option>
+            <option>4-3-3</option><option>4-4-2</option><option>4-2-3-1</option><option>4-5-1</option>
+            <option>3-5-2</option><option>3-4-3</option><option>5-3-2</option><option>5-4-1</option>
+            <option>4-1-4-1</option><option>4-3-2-1</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Formation adverse</label>
+          <select class="fs" id="m-formation-adv">
+            <option value="">— Inconnue —</option>
+            <option>4-3-3</option><option>4-4-2</option><option>4-2-3-1</option><option>4-5-1</option>
+            <option>3-5-2</option><option>3-4-3</option><option>5-3-2</option><option>5-4-1</option>
+            <option>4-1-4-1</option><option>4-3-2-1</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Format</label>
+          <select class="fs" id="m-format"><option value="grand">Grand terrain</option><option value="petit">Petit terrain</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="fl">Type de terrain</label>
+          <select class="fs" id="m-terrain"><option value="">—</option><option value="herbe">🌿 Herbe naturelle</option><option value="synthétique">🔵 Synthétique</option><option value="indoor">🏟 Indoor</option></select>
+        </div>
+        <div class="fg"><label class="fl">Météo</label>
+          <select class="fs" id="m-meteo"><option value="">—</option><option value="beau">☀️ Beau temps</option><option value="nuageux">⛅ Nuageux</option><option value="pluie">🌧 Pluie</option><option value="vent">💨 Vent fort</option><option value="froid">🥶 Grand froid</option><option value="neige">❄️ Neige</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="section"><div class="section-title">⚽ Buteurs</div>
+      <div id="m-buteurs-list"></div>
+      <button class="btn btn-o btn-sm" onclick="addButeur()">+ But marqué</button>
+    </div>
+    <div class="section"><div class="section-title">🎯 Passes décisives</div>
+      <div id="m-assists-list"></div>
+      <button class="btn btn-o btn-sm" onclick="addAssist()">+ Passe décisive</button>
+    </div>
+    <div class="section"><div class="section-title">🔴 Buts encaissés — minutes</div>
+      <div class="fg"><label class="fl">Minutes (séparées par virgule)</label>
+        <input type="text" class="fi" id="m-buts-contre" placeholder="ex: 23, 67, 89+2">
       </div>
     </div>
     <div class="section"><div class="section-title">👥 Composition de départ (11 max)</div>
@@ -697,7 +773,7 @@ tr:hover td{background:rgba(99,179,237,.05);cursor:pointer}
     </div>
     <div class="section"><div class="section-title">🔄 Changements</div>
       <div id="m-changements-list"></div>
-      <button class="btn btn-o btn-sm" onclick="addChangement()">+ Ajouter un changement</button>
+      <button class="btn btn-o btn-sm" onclick="addChangement()">+ Changement</button>
     </div>
     <div class="section"><div class="section-title">📝 Notes de match</div>
       <textarea class="fi" id="m-notes" rows="2" placeholder="Observations tactiques, incidents…"></textarea>
@@ -1967,6 +2043,25 @@ function renderRecrutement(){
   }).join('');
   html+='</div>';
 
+  // Recommandations de profils à recruter
+  const recs=getRecommandationRecrutement();
+  if(recs.length){
+    const style=calcStyleJeu();
+    html+=`<div class="section"><div class="section-title">💡 Profils recommandés à recruter</div>
+      <div style="font-size:12px;color:#718096;margin-bottom:12px">ADN d'équipe : ${style.emoji} <strong style="color:#e2e8f0">${style.label}</strong> · Basé sur les effectifs cibles par poste</div>
+      <div class="players-grid">${recs.map(r=>`
+        <div class="rec-box">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span class="badge b-${r.pos}" style="font-size:11px">${r.pos}</span>
+            <span style="font-size:13px;font-weight:700;color:#e2e8f0">Manque <strong style="color:#fc8181">${r.gap}</strong> joueur${r.gap>1?'s':''}</span>
+            <span style="font-size:11px;color:#718096">${r.current}/${r.target}</span>
+          </div>
+          ${r.profiles.map(p=>`<div style="font-size:12px;color:#a78bfa;margin-bottom:4px;padding-left:6px">→ ${p}</div>`).join('')}
+        </div>
+      `).join('')}</div>
+    </div>`;
+  }
+
   const libres=actives.filter(c=>!c.rechercheId);
   if(libres.length)html+=`<div class="section"><div class="section-title">🎯 Cibles sans recherche (${libres.length})</div><div class="players-grid">${libres.map(c=>renderCibleCard(c)).join('')}</div></div>`;
   if(archived.length)html+=`<div class="section"><div class="section-title">📦 Archives (${archived.length})</div><div class="players-grid">${archived.map(c=>renderCibleCard(c)).join('')}</div></div>`;
@@ -2243,8 +2338,21 @@ function openMatchModal(id){
   document.getElementById('m-bg').value=m?(m.score?.split('-')[0]||0):0;
   document.getElementById('m-ba').value=m?(m.score?.split('-')[1]||0):0;
   document.getElementById('m-lieu').value=m?(m.lieu||'dom'):'dom';
+  document.getElementById('m-type').value=m?(m.competition_type||'championnat'):'championnat';
   document.getElementById('m-comp').value=m?(m.competition||''):'';
+  document.getElementById('m-formation').value=m?(m.formation||''):'';
+  document.getElementById('m-formation-adv').value=m?(m.formation_adv||''):'';
+  document.getElementById('m-format').value=m?(m.format||'grand'):'grand';
+  document.getElementById('m-terrain').value=m?(m.terrain||''):'';
+  document.getElementById('m-meteo').value=m?(m.meteo||''):'';
   document.getElementById('m-notes').value=m?(m.notes||''):'';
+  document.getElementById('m-buts-contre').value=m&&m.buts_contre_mins?m.buts_contre_mins.join(', '):'';
+  // Buteurs
+  const blist=document.getElementById('m-buteurs-list');blist.innerHTML='';
+  if(m&&m.buteurs){m.buteurs.forEach(b=>addButeur(b));}
+  // Assists
+  const alist=document.getElementById('m-assists-list');alist.innerHTML='';
+  if(m&&m.assists){m.assists.forEach(a=>addAssist(a));}
   // Grille titulaires
   const grid=document.getElementById('m-titulaires-grid');
   const sorted=[...players].sort((a,b)=>(a.nom||'').localeCompare(b.nom||''));
@@ -2278,16 +2386,49 @@ function addChangement(data){
   div.innerHTML=`
     <div class="fg"><label class="fl">Sortant</label><select class="fs ch-out">${playerOpts}</select></div>
     <div class="fg"><label class="fl">Entrant</label><select class="fs ch-in">${playerOpts}</select></div>
-    <div class="fg" style="max-width:90px"><label class="fl">Minute</label><input type="number" class="fi ch-min" min="1" max="120" value="${data?data.minute||60:60}"></div>
+    <div class="fg" style="max-width:80px"><label class="fl">Minute</label><input type="number" class="fi ch-min" min="1" max="120" value="${data?data.minute||60:60}"></div>
+    <div class="fg" style="max-width:90px"><label class="fl">Impact</label>
+      <select class="fs ch-impact"><option value="">—</option><option value="oui">✅ Oui</option><option value="non">❌ Non</option></select>
+    </div>
     <div class="fg" style="max-width:36px;display:flex;align-items:flex-end;padding-bottom:2px"><button class="btn btn-d btn-sm" onclick="this.closest('[data-ch]').remove()">✕</button></div>
   `;
   if(data){
     setTimeout(()=>{
-      const s=div.querySelector('.ch-out'),e=div.querySelector('.ch-in');
-      if(s)s.value=data.sortant||'';if(e)e.value=data.entrant||'';
+      const s=div.querySelector('.ch-out'),e=div.querySelector('.ch-in'),imp=div.querySelector('.ch-impact');
+      if(s)s.value=data.sortant||'';if(e)e.value=data.entrant||'';if(imp)imp.value=data.impact||'';
     },0);
   }
   clist.appendChild(div);
+}
+
+function addButeur(data){
+  const list=document.getElementById('m-buteurs-list');
+  const idx=list.children.length;
+  const playerOpts=players.map(p=>`<option value="${p.id}">${p.prenom?p.prenom[0]+'. ':''}${p.nom||'?'}</option>`).join('');
+  const div=document.createElement('div');
+  div.className='form-row';div.style.marginBottom='8px';div.setAttribute('data-bu',idx);
+  div.innerHTML=`
+    <div class="fg"><label class="fl">Buteur</label><select class="fs bu-player">${playerOpts}</select></div>
+    <div class="fg" style="max-width:90px"><label class="fl">Minute</label><input type="number" class="fi bu-min" min="1" max="120" value="${data?data.minute||0:0}"></div>
+    <div class="fg" style="max-width:36px;display:flex;align-items:flex-end;padding-bottom:2px"><button class="btn btn-d btn-sm" onclick="this.closest('[data-bu]').remove()">✕</button></div>
+  `;
+  if(data){setTimeout(()=>{const s=div.querySelector('.bu-player');if(s)s.value=data.pid||'';},0);}
+  list.appendChild(div);
+}
+
+function addAssist(data){
+  const list=document.getElementById('m-assists-list');
+  const idx=list.children.length;
+  const playerOpts=players.map(p=>`<option value="${p.id}">${p.prenom?p.prenom[0]+'. ':''}${p.nom||'?'}</option>`).join('');
+  const div=document.createElement('div');
+  div.className='form-row';div.style.marginBottom='8px';div.setAttribute('data-as',idx);
+  div.innerHTML=`
+    <div class="fg"><label class="fl">Passeur</label><select class="fs as-player">${playerOpts}</select></div>
+    <div class="fg" style="max-width:90px"><label class="fl">Minute</label><input type="number" class="fi as-min" min="1" max="120" value="${data?data.minute||0:0}"></div>
+    <div class="fg" style="max-width:36px;display:flex;align-items:flex-end;padding-bottom:2px"><button class="btn btn-d btn-sm" onclick="this.closest('[data-as]').remove()">✕</button></div>
+  `;
+  if(data){setTimeout(()=>{const s=div.querySelector('.as-player');if(s)s.value=data.pid||'';},0);}
+  list.appendChild(div);
 }
 
 // Enregistrer un match
@@ -2300,8 +2441,19 @@ async function saveMatch(){
   const changements=[...document.querySelectorAll('#m-changements-list [data-ch]')].map(div=>({
     sortant:div.querySelector('.ch-out')?.value||'',
     entrant:div.querySelector('.ch-in')?.value||'',
-    minute:parseInt(div.querySelector('.ch-min')?.value)||60
+    minute:parseInt(div.querySelector('.ch-min')?.value)||60,
+    impact:div.querySelector('.ch-impact')?.value||''
   })).filter(ch=>ch.sortant&&ch.entrant&&ch.sortant!==ch.entrant);
+  const buteurs=[...document.querySelectorAll('#m-buteurs-list [data-bu]')].map(div=>({
+    pid:div.querySelector('.bu-player')?.value||'',
+    minute:parseInt(div.querySelector('.bu-min')?.value)||0
+  })).filter(b=>b.pid);
+  const assists=[...document.querySelectorAll('#m-assists-list [data-as]')].map(div=>({
+    pid:div.querySelector('.as-player')?.value||'',
+    minute:parseInt(div.querySelector('.as-min')?.value)||0
+  })).filter(a=>a.pid);
+  const bcRaw=document.getElementById('m-buts-contre').value;
+  const buts_contre_mins=bcRaw.split(/[,;\s]+/).map(s=>parseInt(s)).filter(n=>!isNaN(n)&&n>0);
   const editId=document.getElementById('m-edit-id').value;
   const m={
     id:editId||'m_'+Date.now(),
@@ -2309,9 +2461,18 @@ async function saveMatch(){
     adversaire:adv,
     score:`${bg}-${ba}`,
     lieu:document.getElementById('m-lieu').value,
+    competition_type:document.getElementById('m-type').value,
     competition:document.getElementById('m-comp').value.trim(),
+    formation:document.getElementById('m-formation').value,
+    formation_adv:document.getElementById('m-formation-adv').value,
+    format:document.getElementById('m-format').value,
+    terrain:document.getElementById('m-terrain').value,
+    meteo:document.getElementById('m-meteo').value,
     titulaires,
     changements,
+    buteurs,
+    assists,
+    buts_contre_mins,
     notes:document.getElementById('m-notes').value.trim(),
     by:CU?.name||'?',
     ts:new Date().toISOString()
@@ -2425,7 +2586,7 @@ function renderMatchCard(m){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div>
         <div style="font-size:14px;font-weight:700;color:#e2e8f0">${m.adversaire}</div>
-        <div style="font-size:11px;color:#718096">${m.date||''} ${m.competition?'· '+m.competition:''} ${m.lieu==='ext'?'· Ext.':'· Dom.'}</div>
+        <div style="font-size:11px;color:#718096">${m.date||''} ${m.competition?'· '+m.competition:''} ${m.lieu==='ext'?'· Ext.':'· Dom.'} ${m.formation?'· '+m.formation:''} ${m.meteo?'· '+{beau:'☀️',nuageux:'⛅',pluie:'🌧',vent:'💨',froid:'🥶',neige:'❄️'}[m.meteo]||'':''}</div>
       </div>
       <div>
         <div class="match-score ${res}">${m.score}</div>
@@ -2453,11 +2614,20 @@ function openMatchDetail(id){
   }).filter(Boolean);
   const changements=(m.changements||[]).map(ch=>{
     const pOut=players.find(x=>x.id===ch.sortant),pIn=players.find(x=>x.id===ch.entrant);
+    const impBadge=ch.impact==='oui'?'<span style="color:#68d391;font-weight:700;margin-left:8px">✅ Impact</span>':ch.impact==='non'?'<span style="color:#fc8181;margin-left:8px">❌ Sans impact</span>':'';
     return`<div class="timeline-item">
       <div class="timeline-min">${ch.minute}'</div>
-      <div><span style="color:#fc8181">⬇ ${pOut?pOut.nom:'?'}</span> → <span style="color:#68d391">⬆ ${pIn?pIn.nom:'?'}</span></div>
+      <div><span style="color:#fc8181">⬇ ${pOut?pOut.nom:'?'}</span> → <span style="color:#68d391">⬆ ${pIn?pIn.nom:'?'}</span>${impBadge}</div>
     </div>`;
   });
+  const buteursHtml=(m.buteurs||[]).map(b=>{
+    const p=players.find(x=>x.id===b.pid);
+    return`<div class="timeline-item"><div class="timeline-min">${b.minute}'</div><div>⚽ <strong>${p?`${p.prenom?p.prenom+' ':''}${p.nom}`:'?'}</strong></div></div>`;
+  }).join('');
+  const assistsHtml=(m.assists||[]).map(a=>{
+    const p=players.find(x=>x.id===a.pid);
+    return`<div class="timeline-item"><div class="timeline-min">${a.minute}'</div><div>🎯 <strong>${p?`${p.prenom?p.prenom+' ':''}${p.nom}`:'?'}</strong></div></div>`;
+  }).join('');
   // Pondérations par groupe
   const groups={GK:[],DEF:[],MIL:[],ATT:[]};
   (m.titulaires||[]).forEach(pid=>{
@@ -2478,7 +2648,12 @@ function openMatchDetail(id){
   document.getElementById('detail-content').innerHTML=`
     <div style="margin-bottom:16px">
       <div style="font-size:24px;font-weight:900;color:#e2e8f0;margin-bottom:2px">vs ${m.adversaire}</div>
-      <div style="font-size:12px;color:#718096">${m.date||''} ${m.competition?'· '+m.competition:''} · ${m.lieu==='ext'?'Extérieur':'Domicile'}</div>
+      <div style="font-size:12px;color:#718096;line-height:1.7">
+        ${m.date||''} · ${m.lieu==='ext'?'Extérieur':'Domicile'} · ${{championnat:'🏆 Championnat',coupe:'🏅 Coupe',amical:'🤝 Amical'}[m.competition_type]||''}
+        ${m.competition?'· '+m.competition:''}
+        ${m.formation?`<br>📐 <strong style="color:#e2e8f0">${m.formation}</strong>`:''}
+        ${m.formation_adv?` vs <strong style="color:#718096">${m.formation_adv}</strong>`:''}
+        ${m.terrain||m.meteo?`<br>${{herbe:'🌿 Herbe',synthétique:'🔵 Synthétique',indoor:'🏟 Indoor'}[m.terrain]||''} ${m.meteo?{beau:'☀️ Beau temps',nuageux:'⛅ Nuageux',pluie:'🌧 Pluie',vent:'💨 Vent fort',froid:'🥶 Grand froid',neige:'❄️ Neige'}[m.meteo]||'':''}`:''}</div>
       <div class="match-score ${res}" style="font-size:40px;margin:12px 0">${m.score}</div>
       <div style="font-size:13px;font-weight:700;color:${resColor}">${matchResultLabel(m.score)}</div>
     </div>
@@ -2486,6 +2661,8 @@ function openMatchDetail(id){
     <div class="section"><div class="section-title">👥 Composition (${titulaires.length} titulaires)</div>
       <div class="compo-pitch" style="grid-template-columns:repeat(${Math.min(4,titulaires.length||1)},1fr)">${titulaires.join('')||'<div style="color:#718096">—</div>'}</div>
     </div>
+    ${buteursHtml?`<div class="section"><div class="section-title">⚽ Buts marqués</div>${buteursHtml}</div>`:''}
+    ${assistsHtml?`<div class="section"><div class="section-title">🎯 Passes décisives</div>${assistsHtml}</div>`:''}
     ${changements.length?`<div class="section"><div class="section-title">🔄 Changements</div>${changements.join('')}</div>`:''}
     ${m.notes?`<div class="section"><div class="section-title">📝 Notes</div><div style="font-size:13px;color:#e2e8f0;line-height:1.6">${m.notes}</div></div>`:''}
     <div class="btn-row">
@@ -2529,6 +2706,202 @@ function renderCompoOptimale(){
     </div>`;
   }).join('');
   el.innerHTML=`<div style="font-size:12px;color:#718096;margin-bottom:14px">Score composite = OVR (40%) + Présence match (40%) + Progression (20%) · ${matchs.length} match${matchs.length>1?'s':''} analysé${matchs.length>1?'s':''}</div>${sections}`;
+}
+
+// ═══════════════════════════════════════
+//  CHANTIER 4 — DATA TAB
+// ═══════════════════════════════════════
+
+function calcTempsjeuMatch(m,pid){
+  const isTit=m.titulaires?.includes(pid);
+  const sortie=m.changements?.find(ch=>ch.sortant===pid);
+  const entree=m.changements?.find(ch=>ch.entrant===pid);
+  if(isTit){if(sortie)return Math.min(90,sortie.minute||90);return 90;}
+  if(entree)return Math.max(0,90-(entree.minute||90));
+  return 0;
+}
+
+function calcTempsjeu(pid,type){
+  const src=type?matchs.filter(m=>m.competition_type===type):matchs;
+  return src.reduce((s,m)=>s+calcTempsjeuMatch(m,pid),0);
+}
+
+function calcPlayerStats(pid,type){
+  const src=type?matchs.filter(m=>m.competition_type===type):matchs;
+  const buts=src.reduce((s,m)=>s+(m.buteurs||[]).filter(b=>b.pid===pid).length,0);
+  const assists=src.reduce((s,m)=>s+(m.assists||[]).filter(a=>a.pid===pid).length,0);
+  const tps=src.reduce((s,m)=>s+calcTempsjeuMatch(m,pid),0);
+  return{buts,assists,tps};
+}
+
+function renderData(){
+  // Stats globales
+  const totalMatchs=matchs.length;
+  const totalButs=matchs.reduce((s,m)=>{const[a]=m.score.split('-').map(Number);return s+a;},0);
+  const totalButsC=matchs.reduce((s,m)=>{const[,b]=m.score.split('-').map(Number);return s+(b||0);},0);
+  const totalTJ=players.reduce((s,p)=>s+calcTempsjeu(p.id),0);
+  document.getElementById('data-global-stats').innerHTML=`
+    <div class="stat-box"><div class="stat-n">${totalMatchs}</div><div class="stat-l">Matchs</div></div>
+    <div class="stat-box" style="border-left-color:#68d391"><div class="stat-n" style="color:#68d391">${totalButs}</div><div class="stat-l">Buts pour</div></div>
+    <div class="stat-box" style="border-left-color:#fc8181"><div class="stat-n" style="color:#fc8181">${totalButsC}</div><div class="stat-l">Buts contre</div></div>
+    <div class="stat-box" style="border-left-color:#a78bfa"><div class="stat-n" style="color:#a78bfa">${totalTJ}</div><div class="stat-l">Min. de jeu (total)</div></div>
+  `;
+  renderQuartHeure();
+  renderPlayerStatsTable();
+  renderChangementsImpact();
+}
+
+function renderQuartHeure(){
+  const labels=['0-15','15-30','30-45','45-60','60-75','75-90+'];
+  const ranges=[[0,15],[15,30],[30,45],[45,60],[60,75],[75,90]];
+  const pour=new Array(6).fill(0),contre=new Array(6).fill(0);
+  matchs.forEach(m=>{
+    (m.buteurs||[]).forEach(b=>{
+      const min=b.minute||0;
+      const i=ranges.findIndex(([a,e])=>min>=a&&min<e);
+      pour[i>=0?i:5]++;
+    });
+    (m.buts_contre_mins||[]).forEach(min=>{
+      const i=ranges.findIndex(([a,e])=>min>=a&&min<e);
+      contre[i>=0?i:5]++;
+    });
+  });
+  const maxV=Math.max(...pour,...contre,1);
+  const rowsPour=labels.map((l,i)=>`<div class="qh-bar-row">
+    <div class="qh-lbl">${l}'</div>
+    <div class="qh-track"><div class="qh-fill" style="width:${Math.max(pour[i]/maxV*100,pour[i]>0?4:0)}%;background:#68d391">${pour[i]>0?pour[i]:''}</div></div>
+  </div>`).join('');
+  const rowsContre=labels.map((l,i)=>`<div class="qh-bar-row">
+    <div class="qh-lbl">${l}'</div>
+    <div class="qh-track"><div class="qh-fill" style="width:${Math.max(contre[i]/maxV*100,contre[i]>0?4:0)}%;background:#fc8181">${contre[i]>0?contre[i]:''}</div></div>
+  </div>`).join('');
+  document.getElementById('data-quart-heure').innerHTML=`
+    <div class="form-row" style="gap:24px">
+      <div><div style="font-size:12px;font-weight:700;color:#68d391;margin-bottom:10px">⚽ Buts marqués</div>${rowsPour}</div>
+      <div><div style="font-size:12px;font-weight:700;color:#fc8181;margin-bottom:10px">🔴 Buts encaissés</div>${rowsContre}</div>
+    </div>
+  `;
+}
+
+function renderPlayerStatsTable(){
+  const types=['amical','championnat','coupe'];
+  const labels={amical:'🤝 Amical',championnat:'🏆 Champ.',coupe:'🏅 Coupe'};
+  const activePids=new Set();
+  matchs.forEach(m=>{
+    (m.titulaires||[]).forEach(id=>activePids.add(id));
+    (m.changements||[]).forEach(ch=>{if(ch.entrant)activePids.add(ch.entrant);});
+    (m.buteurs||[]).forEach(b=>{if(b.pid)activePids.add(b.pid);});
+    (m.assists||[]).forEach(a=>{if(a.pid)activePids.add(a.pid);});
+  });
+  const active=players.filter(p=>activePids.has(p.id)).sort((a,b)=>{
+    const ta=calcPlayerStats(a.id).buts,tb=calcPlayerStats(b.id).buts;
+    return tb-ta;
+  });
+  if(!active.length){document.getElementById('data-player-stats').innerHTML='<div class="empty"><p>Aucune donnée.</p></div>';return;}
+  const rows=active.map(p=>{
+    const pos=p.position?p.position.split('-')[0]:'';
+    const tot=calcPlayerStats(p.id);
+    const byType=types.map(t=>calcPlayerStats(p.id,t));
+    return`<tr>
+      <td><span class="badge b-${pos}">${pos}</span> ${p.prenom?p.prenom+' ':''}${p.nom||'?'}</td>
+      ${byType.map(s=>`<td>${s.buts} / ${s.assists}<br><span style="font-size:10px;color:#718096">${s.tps}'</span></td>`).join('')}
+      <td style="font-weight:700;color:#63b3ed">${tot.buts} / ${tot.assists}<br><span style="font-size:10px;color:#718096">${tot.tps}'</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('data-player-stats').innerHTML=`
+    <div class="table-wrap"><table class="data-tbl">
+      <thead><tr><th style="text-align:left">Joueur</th>
+        ${types.map(t=>`<th>${labels[t]}<br><small style="font-size:9px">B/PD/TJ</small></th>`).join('')}
+        <th>📊 Total<br><small style="font-size:9px">B/PD/TJ</small></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div style="font-size:11px;color:#718096;margin-top:6px">B = Buts · PD = Passes décisives · TJ = Temps de jeu (min)</div>
+  `;
+}
+
+function renderChangementsImpact(){
+  const impacts=[];
+  matchs.forEach(m=>{
+    (m.changements||[]).forEach(ch=>{
+      if(ch.impact==='oui'){
+        const pIn=players.find(x=>x.id===ch.entrant),pOut=players.find(x=>x.id===ch.sortant);
+        impacts.push({match:m,ch,pIn,pOut});
+      }
+    });
+  });
+  if(!impacts.length){document.getElementById('data-changements-impact').innerHTML='<div class="empty"><p>Aucun changement avec impact positif enregistré.</p></div>';return;}
+  document.getElementById('data-changements-impact').innerHTML=impacts.map(({match:m,ch,pIn,pOut})=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(45,74,122,.4)">
+      <div class="timeline-min">${ch.minute}'</div>
+      <div style="flex:1">
+        <span style="color:#fc8181">⬇ ${pOut?pOut.nom:'?'}</span>
+        <span style="color:#718096"> → </span>
+        <span style="color:#68d391">⬆ ${pIn?pIn.nom:'?'}</span>
+        <span style="color:#68d391;font-weight:700;margin-left:6px">✅ Impact positif</span>
+      </div>
+      <div style="font-size:11px;color:#718096">${m.adversaire} · ${m.date||''}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+//  RECOMMANDATION RECRUTEMENT
+// ═══════════════════════════════════════
+function getProfilesForPos(pos,styleId){
+  const map={
+    GK:{
+      default:['Gardien moderne — Distribution longue distance','Gardien arrêté — Sécurité en zone'],
+      possession:['Gardien sweeper — Relanceur court, jeu au pied'],
+      pressing:['Gardien sweeper — Engagement haut du terrain'],
+    },
+    DEF:{
+      default:['Défenseur central — Bloc défensif','Latéral offensif — Contribution offensive'],
+      transition:['DC rapide — Couverture profondeur','Latéral avec vitesse de pointe'],
+      possession:['DC Relanceur — Distribution courte et précise','Latéral moderne — Surnombre offensif'],
+      pressing:['DC Pressing — Récupération haute','Latéral avec endurance offensive'],
+      positionnel:['DC Intelligent — Lecture et organisation','Latéral positionnel — Triangulations'],
+      defensif:['DC Bloc bas — Sang-froid et concentration','Latéral défensif strict'],
+      direct:['DC Physique — Duels aériens','Latéral robuste — Deuxième attaquant'],
+      relationnel:['DC Technique — Relance courte','Latéral combinaison — Jeu en triangle'],
+    },
+    MIL:{
+      default:['Milieu box-to-box — Équilibre défense/attaque','Meneur de jeu — Distribution et vision'],
+      transition:['Milieu relayeur — Transition rapide','Récupérateur — Pressing et contre-attaque'],
+      possession:['Sentinelle — Contrôle et distribution','Milieu créateur — Circulation courte'],
+      pressing:['Récupérateur — Pressing intense','Milieu box-to-box — Endurance et agressivité'],
+      positionnel:['Meneur entre les lignes — Créativité','Sentinelle — Organisation spatiale'],
+      relationnel:['Milieu associatif — Triangulations','Meneur avancé — Combinaisons'],
+      defensif:['Sentinelle défensive — Protection du bloc','Milieu récupérateur — Bloc bas'],
+      direct:['Milieu physique — Secondes balles','Box-to-box — Endurance et percussion'],
+    },
+    ATT:{
+      default:['Avant-centre — Finition et duels','Ailier — Vitesse et débordements'],
+      transition:['Attaquant de profondeur — Vitesse explosive','Ailier rapide — Exploiter les espaces'],
+      direct:['Pivot — Duels aériens et secondes balles','Attaquant de pointe — Finition pure'],
+      positionnel:['Faux 9 — Jeu entre les lignes','Ailier intérieur — Créativité'],
+      possession:['Attaquant en retrait — Combinaisons','Avant-centre — Jeu au pied technique'],
+      relationnel:['Attaquant associatif — Passes et déplacements','Second attaquant — Connexions courtes'],
+      pressing:['Avant-centre pressing — Déclencheur','Ailier harcèlement — Récupération haute'],
+      defensif:['Attaquant efficace — Peu d\'occasions','Ailier physique — Effort défensif'],
+    }
+  };
+  const posMap=map[pos]||{};
+  return posMap[styleId]||posMap.default||['Profil complet — Toutes qualités'];
+}
+
+function getRecommandationRecrutement(){
+  const byPos={GK:0,DEF:0,MIL:0,ATT:0};
+  players.filter(p=>p.statut!=='Prêté').forEach(p=>{
+    const pos=p.position?p.position.split('-')[0]:null;
+    if(pos&&byPos[pos]!==undefined)byPos[pos]++;
+  });
+  const style=calcStyleJeu();
+  return Object.entries(CIBLES_POSTE).map(([pos,target])=>{
+    const current=byPos[pos]||0,gap=target-current;
+    if(gap<=0)return null;
+    return{pos,gap,current,target,profiles:getProfilesForPos(pos,style.id)};
+  }).filter(Boolean);
 }
 
 // ═══════════════════════════════════════
